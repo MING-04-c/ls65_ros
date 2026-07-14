@@ -1,0 +1,258 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"childIndexes" : 
+					[
+						1,
+						2
+					],
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-.-416deb37db7191553b87.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.12"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3,
+						5,
+						6,
+						7,
+						8,
+						9,
+						10,
+						11,
+						12,
+						13,
+						14,
+						15,
+						17,
+						18
+					]
+				},
+				{
+					"build" : "eli_dashboard_interface__py",
+					"jsonFile" : "directory-eli_dashboard_interface__py-db96b21d9f095e49d2f6.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.12"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "/home/robot/project/ls65_ros/ls65/elite_ros_ws/build/eli_dashboard_interface/eli_dashboard_interface__py",
+					"targetIndexes" : 
+					[
+						4
+					]
+				},
+				{
+					"build" : "eli_dashboard_interface__rs",
+					"jsonFile" : "directory-eli_dashboard_interface__rs-2e290ca114a22dcad75a.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.12"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "/home/robot/project/ls65_ros/ls65/elite_ros_ws/build/eli_dashboard_interface/eli_dashboard_interface__rs",
+					"targetIndexes" : 
+					[
+						16
+					]
+				}
+			],
+			"name" : "",
+			"projects" : 
+			[
+				{
+					"directoryIndexes" : 
+					[
+						0,
+						1,
+						2
+					],
+					"name" : "eli_dashboard_interface",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3,
+						4,
+						5,
+						6,
+						7,
+						8,
+						9,
+						10,
+						11,
+						12,
+						13,
+						14,
+						15,
+						16,
+						17,
+						18
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 0,
+					"id" : "ament_cmake_python_build_eli_dashboard_interface_egg::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ament_cmake_python_build_eli_dashboard_interface_egg-00b98d6b1f1455361d2e.json",
+					"name" : "ament_cmake_python_build_eli_dashboard_interface_egg",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ament_cmake_python_copy_eli_dashboard_interface::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ament_cmake_python_copy_eli_dashboard_interface-fb41ab4298558c6b9c0a.json",
+					"name" : "ament_cmake_python_copy_eli_dashboard_interface",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "eli_dashboard_interface::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-eli_dashboard_interface-1c12d855ba7009f5185b.json",
+					"name" : "eli_dashboard_interface",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "eli_dashboard_interface__cpp::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-eli_dashboard_interface__cpp-160270043aab8357b9a4.json",
+					"name" : "eli_dashboard_interface__cpp",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "eli_dashboard_interface__py::@2eb9167a22d381eee728",
+					"jsonFile" : "target-eli_dashboard_interface__py-0773bdf9fd3600b7fda8.json",
+					"name" : "eli_dashboard_interface__py",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "eli_dashboard_interface__rosidl_generator_c::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-eli_dashboard_interface__rosidl_generator_c-d6ab716ddbc17252dc35.json",
+					"name" : "eli_dashboard_interface__rosidl_generator_c",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "eli_dashboard_interface__rosidl_generator_py::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-eli_dashboard_interface__rosidl_generator_py-6db775cf47469707ee36.json",
+					"name" : "eli_dashboard_interface__rosidl_generator_py",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "eli_dashboard_interface__rosidl_typesupport_c::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-eli_dashboard_interface__rosidl_typesupport_c-f28e33c29edbcc9169af.json",
+					"name" : "eli_dashboard_interface__rosidl_typesupport_c",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "eli_dashboard_interface__rosidl_typesupport_c__pyext::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-eli_dashboard_interface__rosidl_typesupport_c__pyext-fadfb252afe040ba0e2e.json",
+					"name" : "eli_dashboard_interface__rosidl_typesupport_c__pyext",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "eli_dashboard_interface__rosidl_typesupport_cpp::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-eli_dashboard_interface__rosidl_typesupport_cpp-015d59d286e2826df2e8.json",
+					"name" : "eli_dashboard_interface__rosidl_typesupport_cpp",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "eli_dashboard_interface__rosidl_typesupport_fastrtps_c::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-eli_dashboard_interface__rosidl_typesupport_fastrtps_c-d77c2c17a5f943d47f5b.json",
+					"name" : "eli_dashboard_interface__rosidl_typesupport_fastrtps_c",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "eli_dashboard_interface__rosidl_typesupport_fastrtps_c__pyext::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-eli_dashboard_interface__rosidl_typesupport_fastrtps_c__pyext-16177dd9cc393cc6a69f.json",
+					"name" : "eli_dashboard_interface__rosidl_typesupport_fastrtps_c__pyext",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "eli_dashboard_interface__rosidl_typesupport_fastrtps_cpp::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-eli_dashboard_interface__rosidl_typesupport_fastrtps_cpp-22a7fe13073cbaa1f409.json",
+					"name" : "eli_dashboard_interface__rosidl_typesupport_fastrtps_cpp",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "eli_dashboard_interface__rosidl_typesupport_introspection_c::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-eli_dashboard_interface__rosidl_typesupport_introspection_c-6e5229aea72bb46066b4.json",
+					"name" : "eli_dashboard_interface__rosidl_typesupport_introspection_c",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "eli_dashboard_interface__rosidl_typesupport_introspection_c__pyext::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-eli_dashboard_interface__rosidl_typesupport_introspection_c__pyext-82935c6bfc56f6ef3b5c.json",
+					"name" : "eli_dashboard_interface__rosidl_typesupport_introspection_c__pyext",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "eli_dashboard_interface__rosidl_typesupport_introspection_cpp::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-eli_dashboard_interface__rosidl_typesupport_introspection_cpp-7500b6073f59570be461.json",
+					"name" : "eli_dashboard_interface__rosidl_typesupport_introspection_cpp",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 2,
+					"id" : "eli_dashboard_interface__rs::@32bd437a0ee16c502cbc",
+					"jsonFile" : "target-eli_dashboard_interface__rs-c472ace4a1b70e21b105.json",
+					"name" : "eli_dashboard_interface__rs",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "eli_dashboard_interface_uninstall::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-eli_dashboard_interface_uninstall-e3e8c9f0ac36c0e0ce12.json",
+					"name" : "eli_dashboard_interface_uninstall",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "uninstall::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-uninstall-d9840a4e9a547864c997.json",
+					"name" : "uninstall",
+					"projectIndex" : 0
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "/home/robot/project/ls65_ros/ls65/elite_ros_ws/build/eli_dashboard_interface",
+		"source" : "/home/robot/project/ls65_ros/ls65/elite_ros_ws/src/eli_dashboard_interface"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 3
+	}
+}

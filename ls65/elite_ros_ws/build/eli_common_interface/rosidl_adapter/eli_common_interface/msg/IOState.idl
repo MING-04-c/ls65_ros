@@ -1,0 +1,27 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from eli_common_interface/msg/IOState.msg
+// generated code does not contain a copyright notice
+
+#include "eli_common_interface/msg/Analog.idl"
+
+module eli_common_interface {
+  module msg {
+    struct IOState {
+      sequence<boolean> standard_out;
+
+      sequence<boolean> config_out;
+
+      sequence<boolean> tool_out;
+
+      sequence<boolean> standard_in;
+
+      sequence<boolean> config_in;
+
+      sequence<boolean> tool_in;
+
+      sequence<eli_common_interface::msg::Analog> standard_analog_out;
+
+      sequence<eli_common_interface::msg::Analog> standard_analog_in;
+    };
+  };
+};

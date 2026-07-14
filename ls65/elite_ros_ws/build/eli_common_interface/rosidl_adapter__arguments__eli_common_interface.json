@@ -1,0 +1,17 @@
+{
+  "package_name": "eli_common_interface",
+  "non_idl_tuples": [
+    "/home/robot/project/ls65_ros/ls65/elite_ros_ws/src/eli_common_interface:srv/GetTaskStatus.srv",
+    "/home/robot/project/ls65_ros/ls65/elite_ros_ws/src/eli_common_interface:srv/GetRobotMode.srv",
+    "/home/robot/project/ls65_ros/ls65/elite_ros_ws/src/eli_common_interface:srv/GetSafetyMode.srv",
+    "/home/robot/project/ls65_ros/ls65/elite_ros_ws/src/eli_common_interface:srv/SetIO.srv",
+    "/home/robot/project/ls65_ros/ls65/elite_ros_ws/src/eli_common_interface:srv/SetSpeedSliderFraction.srv",
+    "/home/robot/project/ls65_ros/ls65/elite_ros_ws/src/eli_common_interface:srv/SetPayload.srv",
+    "/home/robot/project/ls65_ros/ls65/elite_ros_ws/src/eli_common_interface:msg/RobotMode.msg",
+    "/home/robot/project/ls65_ros/ls65/elite_ros_ws/src/eli_common_interface:msg/TaskStatus.msg",
+    "/home/robot/project/ls65_ros/ls65/elite_ros_ws/src/eli_common_interface:msg/SafetyMode.msg",
+    "/home/robot/project/ls65_ros/ls65/elite_ros_ws/src/eli_common_interface:msg/Analog.msg",
+    "/home/robot/project/ls65_ros/ls65/elite_ros_ws/src/eli_common_interface:msg/IOState.msg",
+    "/home/robot/project/ls65_ros/ls65/elite_ros_ws/src/eli_common_interface:msg/ToolData.msg"
+  ]
+}

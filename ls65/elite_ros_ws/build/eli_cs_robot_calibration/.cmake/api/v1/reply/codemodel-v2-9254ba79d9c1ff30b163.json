@@ -1,0 +1,88 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-.-62dae1fcf2a6d21c3a79.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.12"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3
+					]
+				}
+			],
+			"name" : "",
+			"projects" : 
+			[
+				{
+					"directoryIndexes" : 
+					[
+						0
+					],
+					"name" : "eli_cs_robot_calibration",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 0,
+					"id" : "calibration::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-calibration-1fba6d08bcdbab182ac7.json",
+					"name" : "calibration",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "calibration_correction::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-calibration_correction-668393a98b86d7b335dd.json",
+					"name" : "calibration_correction",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "eli_cs_robot_calibration_uninstall::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-eli_cs_robot_calibration_uninstall-acf9a1ae31a19f91c441.json",
+					"name" : "eli_cs_robot_calibration_uninstall",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "uninstall::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-uninstall-bd25522676c7b32ddaf3.json",
+					"name" : "uninstall",
+					"projectIndex" : 0
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "/home/robot/project/ls65_ros/ls65/elite_ros_ws/build/eli_cs_robot_calibration",
+		"source" : "/home/robot/project/ls65_ros/ls65/elite_ros_ws/src/eli_cs_robot_calibration"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 3
+	}
+}

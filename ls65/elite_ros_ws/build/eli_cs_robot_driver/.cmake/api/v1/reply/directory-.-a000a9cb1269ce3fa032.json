@@ -1,0 +1,985 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"install",
+			"rclcpp_components_register_node",
+			"pluginlib_export_plugin_description_file",
+			"ament_environment_hooks",
+			"_ament_cmake_export_libraries_register_environment_hook",
+			"ament_export_libraries",
+			"ament_index_register_resource",
+			"ament_cmake_environment_generate_package_run_dependencies_marker",
+			"include",
+			"ament_execute_extensions",
+			"ament_package",
+			"ament_cmake_environment_generate_parent_prefix_path_marker",
+			"ament_generate_package_environment",
+			"ament_index_register_package",
+			"_ament_package"
+		],
+		"files" : 
+		[
+			"/opt/ros/humble/share/rclcpp_components/cmake/rclcpp_components_register_node.cmake",
+			"CMakeLists.txt",
+			"/opt/ros/humble/share/pluginlib/cmake/pluginlib_export_plugin_description_file.cmake",
+			"/opt/ros/humble/share/ament_cmake_core/cmake/environment_hooks/ament_environment_hooks.cmake",
+			"/opt/ros/humble/share/ament_cmake_export_libraries/cmake/ament_cmake_export_libraries-extras.cmake",
+			"/opt/ros/humble/share/ament_cmake_export_libraries/cmake/ament_export_libraries.cmake",
+			"/opt/ros/humble/share/ament_cmake_core/cmake/index/ament_index_register_resource.cmake",
+			"/opt/ros/humble/share/ament_cmake_core/cmake/environment/ament_cmake_environment_package_hook.cmake",
+			"/opt/ros/humble/share/ament_cmake_core/cmake/core/ament_execute_extensions.cmake",
+			"/opt/ros/humble/share/ament_cmake_core/cmake/core/ament_package.cmake",
+			"/opt/ros/humble/share/ament_cmake_core/cmake/environment_hooks/ament_cmake_environment_hooks_package_hook.cmake",
+			"/opt/ros/humble/share/ament_cmake_core/cmake/environment_hooks/ament_generate_package_environment.cmake",
+			"/opt/ros/humble/share/ament_cmake_core/cmake/index/ament_index_register_package.cmake",
+			"/opt/ros/humble/share/ament_cmake_core/cmake/index/ament_cmake_index_package_hook.cmake",
+			"/opt/ros/humble/share/rclcpp_components/cmake/rclcpp_components_package_hook.cmake",
+			"/opt/ros/humble/share/pluginlib/cmake/pluginlib_package_hook.cmake",
+			"/opt/ros/humble/share/ament_cmake_export_targets/cmake/ament_cmake_export_targets_package_hook.cmake"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 1
+			},
+			{
+				"command" : 1,
+				"file" : 1,
+				"line" : 58,
+				"parent" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 81,
+				"parent" : 1
+			},
+			{
+				"command" : 0,
+				"file" : 1,
+				"line" : 64,
+				"parent" : 0
+			},
+			{
+				"command" : 1,
+				"file" : 1,
+				"line" : 84,
+				"parent" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 81,
+				"parent" : 4
+			},
+			{
+				"command" : 0,
+				"file" : 1,
+				"line" : 90,
+				"parent" : 0
+			},
+			{
+				"command" : 1,
+				"file" : 1,
+				"line" : 110,
+				"parent" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 81,
+				"parent" : 7
+			},
+			{
+				"command" : 0,
+				"file" : 1,
+				"line" : 116,
+				"parent" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 1,
+				"line" : 142,
+				"parent" : 0
+			},
+			{
+				"command" : 2,
+				"file" : 1,
+				"line" : 167,
+				"parent" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 2,
+				"line" : 89,
+				"parent" : 11
+			},
+			{
+				"command" : 0,
+				"file" : 1,
+				"line" : 168,
+				"parent" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 1,
+				"line" : 190,
+				"parent" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 1,
+				"line" : 207,
+				"parent" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 1,
+				"line" : 213,
+				"parent" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 1,
+				"line" : 218,
+				"parent" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 1,
+				"line" : 223,
+				"parent" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 1,
+				"line" : 229,
+				"parent" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 1,
+				"line" : 233,
+				"parent" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 1,
+				"line" : 237,
+				"parent" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 1,
+				"line" : 250,
+				"parent" : 0
+			},
+			{
+				"command" : 5,
+				"file" : 1,
+				"line" : 259,
+				"parent" : 0
+			},
+			{
+				"command" : 4,
+				"file" : 5,
+				"line" : 35,
+				"parent" : 23
+			},
+			{
+				"command" : 3,
+				"file" : 4,
+				"line" : 25,
+				"parent" : 24
+			},
+			{
+				"command" : 0,
+				"file" : 3,
+				"line" : 70,
+				"parent" : 25
+			},
+			{
+				"command" : 0,
+				"file" : 3,
+				"line" : 87,
+				"parent" : 25
+			},
+			{
+				"command" : 10,
+				"file" : 1,
+				"line" : 283,
+				"parent" : 0
+			},
+			{
+				"command" : 9,
+				"file" : 9,
+				"line" : 66,
+				"parent" : 28
+			},
+			{
+				"command" : 8,
+				"file" : 8,
+				"line" : 48,
+				"parent" : 29
+			},
+			{
+				"file" : 7,
+				"parent" : 30
+			},
+			{
+				"command" : 7,
+				"file" : 7,
+				"line" : 47,
+				"parent" : 31
+			},
+			{
+				"command" : 6,
+				"file" : 7,
+				"line" : 29,
+				"parent" : 32
+			},
+			{
+				"command" : 0,
+				"file" : 6,
+				"line" : 105,
+				"parent" : 33
+			},
+			{
+				"command" : 11,
+				"file" : 7,
+				"line" : 48,
+				"parent" : 31
+			},
+			{
+				"command" : 6,
+				"file" : 7,
+				"line" : 43,
+				"parent" : 35
+			},
+			{
+				"command" : 0,
+				"file" : 6,
+				"line" : 105,
+				"parent" : 36
+			},
+			{
+				"command" : 8,
+				"file" : 8,
+				"line" : 48,
+				"parent" : 29
+			},
+			{
+				"file" : 10,
+				"parent" : 38
+			},
+			{
+				"command" : 3,
+				"file" : 10,
+				"line" : 20,
+				"parent" : 39
+			},
+			{
+				"command" : 0,
+				"file" : 3,
+				"line" : 70,
+				"parent" : 40
+			},
+			{
+				"command" : 0,
+				"file" : 3,
+				"line" : 87,
+				"parent" : 40
+			},
+			{
+				"command" : 0,
+				"file" : 3,
+				"line" : 70,
+				"parent" : 40
+			},
+			{
+				"command" : 0,
+				"file" : 3,
+				"line" : 87,
+				"parent" : 40
+			},
+			{
+				"command" : 12,
+				"file" : 10,
+				"line" : 26,
+				"parent" : 39
+			},
+			{
+				"command" : 0,
+				"file" : 11,
+				"line" : 91,
+				"parent" : 45
+			},
+			{
+				"command" : 0,
+				"file" : 11,
+				"line" : 91,
+				"parent" : 45
+			},
+			{
+				"command" : 0,
+				"file" : 11,
+				"line" : 91,
+				"parent" : 45
+			},
+			{
+				"command" : 0,
+				"file" : 11,
+				"line" : 107,
+				"parent" : 45
+			},
+			{
+				"command" : 0,
+				"file" : 11,
+				"line" : 119,
+				"parent" : 45
+			},
+			{
+				"command" : 8,
+				"file" : 8,
+				"line" : 48,
+				"parent" : 29
+			},
+			{
+				"file" : 13,
+				"parent" : 51
+			},
+			{
+				"command" : 13,
+				"file" : 13,
+				"line" : 16,
+				"parent" : 52
+			},
+			{
+				"command" : 6,
+				"file" : 12,
+				"line" : 29,
+				"parent" : 53
+			},
+			{
+				"command" : 0,
+				"file" : 6,
+				"line" : 105,
+				"parent" : 54
+			},
+			{
+				"command" : 8,
+				"file" : 8,
+				"line" : 48,
+				"parent" : 29
+			},
+			{
+				"file" : 14,
+				"parent" : 56
+			},
+			{
+				"command" : 6,
+				"file" : 14,
+				"line" : 29,
+				"parent" : 57
+			},
+			{
+				"command" : 0,
+				"file" : 6,
+				"line" : 105,
+				"parent" : 58
+			},
+			{
+				"command" : 8,
+				"file" : 8,
+				"line" : 48,
+				"parent" : 29
+			},
+			{
+				"file" : 15,
+				"parent" : 60
+			},
+			{
+				"command" : 6,
+				"file" : 15,
+				"line" : 22,
+				"parent" : 61
+			},
+			{
+				"command" : 0,
+				"file" : 6,
+				"line" : 105,
+				"parent" : 62
+			},
+			{
+				"command" : 8,
+				"file" : 8,
+				"line" : 48,
+				"parent" : 29
+			},
+			{
+				"file" : 16,
+				"parent" : 64
+			},
+			{
+				"command" : 0,
+				"file" : 16,
+				"line" : 28,
+				"parent" : 65
+			},
+			{
+				"command" : 0,
+				"file" : 16,
+				"line" : 28,
+				"parent" : 65
+			},
+			{
+				"command" : 0,
+				"file" : 16,
+				"line" : 28,
+				"parent" : 65
+			},
+			{
+				"command" : 14,
+				"file" : 9,
+				"line" : 68,
+				"parent" : 28
+			},
+			{
+				"command" : 0,
+				"file" : 9,
+				"line" : 122,
+				"parent" : 69
+			},
+			{
+				"command" : 0,
+				"file" : 9,
+				"line" : 122,
+				"parent" : 69
+			},
+			{
+				"command" : 0,
+				"file" : 9,
+				"line" : 122,
+				"parent" : 69
+			},
+			{
+				"command" : 0,
+				"file" : 9,
+				"line" : 122,
+				"parent" : 69
+			},
+			{
+				"command" : 0,
+				"file" : 9,
+				"line" : 150,
+				"parent" : 69
+			},
+			{
+				"command" : 0,
+				"file" : 9,
+				"line" : 157,
+				"parent" : 69
+			}
+		]
+	},
+	"installers" : 
+	[
+		{
+			"backtrace" : 2,
+			"component" : "Unspecified",
+			"destination" : "lib/eli_cs_robot_driver",
+			"paths" : 
+			[
+				"dashboard_client"
+			],
+			"targetId" : "dashboard_client::@6890427a1f51a3e7e1df",
+			"targetIndex" : 1,
+			"type" : "target"
+		},
+		{
+			"backtrace" : 3,
+			"component" : "Unspecified",
+			"destination" : "lib",
+			"paths" : 
+			[
+				"libdashboard_client_component.so"
+			],
+			"targetId" : "dashboard_client_component::@6890427a1f51a3e7e1df",
+			"targetIndex" : 2,
+			"type" : "target"
+		},
+		{
+			"backtrace" : 5,
+			"component" : "Unspecified",
+			"destination" : "lib/eli_cs_robot_driver",
+			"paths" : 
+			[
+				"primary_client"
+			],
+			"targetId" : "primary_client::@6890427a1f51a3e7e1df",
+			"targetIndex" : 8,
+			"type" : "target"
+		},
+		{
+			"backtrace" : 6,
+			"component" : "Unspecified",
+			"destination" : "lib",
+			"paths" : 
+			[
+				"libprimary_client_component.so"
+			],
+			"targetId" : "primary_client_component::@6890427a1f51a3e7e1df",
+			"targetIndex" : 9,
+			"type" : "target"
+		},
+		{
+			"backtrace" : 8,
+			"component" : "Unspecified",
+			"destination" : "lib/eli_cs_robot_driver",
+			"paths" : 
+			[
+				"script_node"
+			],
+			"targetId" : "script_node::@6890427a1f51a3e7e1df",
+			"targetIndex" : 10,
+			"type" : "target"
+		},
+		{
+			"backtrace" : 9,
+			"component" : "Unspecified",
+			"destination" : "lib",
+			"paths" : 
+			[
+				"libscript_node_component.so"
+			],
+			"targetId" : "script_node_component::@6890427a1f51a3e7e1df",
+			"targetIndex" : 11,
+			"type" : "target"
+		},
+		{
+			"backtrace" : 10,
+			"component" : "Unspecified",
+			"destination" : "lib/eli_cs_robot_driver",
+			"paths" : 
+			[
+				"eli_components_loader"
+			],
+			"targetId" : "eli_components_loader::@6890427a1f51a3e7e1df",
+			"targetIndex" : 3,
+			"type" : "target"
+		},
+		{
+			"backtrace" : 12,
+			"component" : "Unspecified",
+			"destination" : "share/eli_cs_robot_driver",
+			"paths" : 
+			[
+				"hardware_interface_plugin.xml"
+			],
+			"type" : "file"
+		},
+		{
+			"backtrace" : 13,
+			"component" : "Unspecified",
+			"destination" : "lib",
+			"paths" : 
+			[
+				"libeli_cs_hardware_interface_plugin.so"
+			],
+			"targetId" : "eli_cs_hardware_interface_plugin::@6890427a1f51a3e7e1df",
+			"targetIndex" : 4,
+			"type" : "target"
+		},
+		{
+			"backtrace" : 14,
+			"component" : "Unspecified",
+			"destination" : "lib/eli_cs_robot_driver",
+			"paths" : 
+			[
+				"controller_stopper_node"
+			],
+			"targetId" : "controller_stopper_node::@6890427a1f51a3e7e1df",
+			"targetIndex" : 0,
+			"type" : "target"
+		},
+		{
+			"backtrace" : 15,
+			"component" : "Unspecified",
+			"destination" : "lib/eli_cs_robot_driver",
+			"paths" : 
+			[
+				"eli_ros2_control_node"
+			],
+			"targetId" : "eli_ros2_control_node::@6890427a1f51a3e7e1df",
+			"targetIndex" : 6,
+			"type" : "target"
+		},
+		{
+			"backtrace" : 16,
+			"component" : "Unspecified",
+			"destination" : "include",
+			"paths" : 
+			[
+				{
+					"from" : "include",
+					"to" : "."
+				}
+			],
+			"type" : "directory"
+		},
+		{
+			"backtrace" : 17,
+			"component" : "Unspecified",
+			"destination" : "share/eli_cs_robot_driver",
+			"paths" : 
+			[
+				"resources"
+			],
+			"type" : "directory"
+		},
+		{
+			"backtrace" : 18,
+			"component" : "Unspecified",
+			"destination" : "share/eli_cs_robot_driver",
+			"paths" : 
+			[
+				"config",
+				"launch"
+			],
+			"type" : "directory"
+		},
+		{
+			"backtrace" : 19,
+			"component" : "Unspecified",
+			"destination" : "share/eli_cs_robot_driver/launch/",
+			"paths" : 
+			[
+				{
+					"from" : "example/launch",
+					"to" : "."
+				}
+			],
+			"type" : "directory"
+		},
+		{
+			"backtrace" : 20,
+			"component" : "Unspecified",
+			"destination" : "share/eli_cs_robot_driver/config/",
+			"paths" : 
+			[
+				{
+					"from" : "example/config",
+					"to" : "."
+				}
+			],
+			"type" : "directory"
+		},
+		{
+			"backtrace" : 21,
+			"component" : "Unspecified",
+			"destination" : "lib/eli_cs_robot_driver",
+			"paths" : 
+			[
+				{
+					"from" : "example/python/example_safe_joint_move.py",
+					"to" : "example_safe_joint_move_py"
+				}
+			],
+			"type" : "file"
+		},
+		{
+			"backtrace" : 22,
+			"component" : "Unspecified",
+			"destination" : "lib/eli_cs_robot_driver",
+			"paths" : 
+			[
+				"example_safe_joint_move"
+			],
+			"targetId" : "example_safe_joint_move::@6890427a1f51a3e7e1df",
+			"targetIndex" : 7,
+			"type" : "target"
+		},
+		{
+			"backtrace" : 26,
+			"component" : "Unspecified",
+			"destination" : "share/eli_cs_robot_driver/environment",
+			"paths" : 
+			[
+				"/opt/ros/humble/lib/python3.10/site-packages/ament_package/template/environment_hook/library_path.sh"
+			],
+			"type" : "file"
+		},
+		{
+			"backtrace" : 27,
+			"component" : "Unspecified",
+			"destination" : "share/eli_cs_robot_driver/environment",
+			"paths" : 
+			[
+				"/home/robot/project/ls65_ros/ls65/elite_ros_ws/build/eli_cs_robot_driver/ament_cmake_environment_hooks/library_path.dsv"
+			],
+			"type" : "file"
+		},
+		{
+			"backtrace" : 34,
+			"component" : "Unspecified",
+			"destination" : "share/ament_index/resource_index/package_run_dependencies",
+			"paths" : 
+			[
+				"/home/robot/project/ls65_ros/ls65/elite_ros_ws/build/eli_cs_robot_driver/ament_cmake_index/share/ament_index/resource_index/package_run_dependencies/eli_cs_robot_driver"
+			],
+			"type" : "file"
+		},
+		{
+			"backtrace" : 37,
+			"component" : "Unspecified",
+			"destination" : "share/ament_index/resource_index/parent_prefix_path",
+			"paths" : 
+			[
+				"/home/robot/project/ls65_ros/ls65/elite_ros_ws/build/eli_cs_robot_driver/ament_cmake_index/share/ament_index/resource_index/parent_prefix_path/eli_cs_robot_driver"
+			],
+			"type" : "file"
+		},
+		{
+			"backtrace" : 41,
+			"component" : "Unspecified",
+			"destination" : "share/eli_cs_robot_driver/environment",
+			"paths" : 
+			[
+				"/opt/ros/humble/share/ament_cmake_core/cmake/environment_hooks/environment/ament_prefix_path.sh"
+			],
+			"type" : "file"
+		},
+		{
+			"backtrace" : 42,
+			"component" : "Unspecified",
+			"destination" : "share/eli_cs_robot_driver/environment",
+			"paths" : 
+			[
+				"/home/robot/project/ls65_ros/ls65/elite_ros_ws/build/eli_cs_robot_driver/ament_cmake_environment_hooks/ament_prefix_path.dsv"
+			],
+			"type" : "file"
+		},
+		{
+			"backtrace" : 43,
+			"component" : "Unspecified",
+			"destination" : "share/eli_cs_robot_driver/environment",
+			"paths" : 
+			[
+				"/opt/ros/humble/share/ament_cmake_core/cmake/environment_hooks/environment/path.sh"
+			],
+			"type" : "file"
+		},
+		{
+			"backtrace" : 44,
+			"component" : "Unspecified",
+			"destination" : "share/eli_cs_robot_driver/environment",
+			"paths" : 
+			[
+				"/home/robot/project/ls65_ros/ls65/elite_ros_ws/build/eli_cs_robot_driver/ament_cmake_environment_hooks/path.dsv"
+			],
+			"type" : "file"
+		},
+		{
+			"backtrace" : 46,
+			"component" : "Unspecified",
+			"destination" : "share/eli_cs_robot_driver",
+			"paths" : 
+			[
+				"/home/robot/project/ls65_ros/ls65/elite_ros_ws/build/eli_cs_robot_driver/ament_cmake_environment_hooks/local_setup.bash"
+			],
+			"type" : "file"
+		},
+		{
+			"backtrace" : 47,
+			"component" : "Unspecified",
+			"destination" : "share/eli_cs_robot_driver",
+			"paths" : 
+			[
+				"/home/robot/project/ls65_ros/ls65/elite_ros_ws/build/eli_cs_robot_driver/ament_cmake_environment_hooks/local_setup.sh"
+			],
+			"type" : "file"
+		},
+		{
+			"backtrace" : 48,
+			"component" : "Unspecified",
+			"destination" : "share/eli_cs_robot_driver",
+			"paths" : 
+			[
+				"/home/robot/project/ls65_ros/ls65/elite_ros_ws/build/eli_cs_robot_driver/ament_cmake_environment_hooks/local_setup.zsh"
+			],
+			"type" : "file"
+		},
+		{
+			"backtrace" : 49,
+			"component" : "Unspecified",
+			"destination" : "share/eli_cs_robot_driver",
+			"paths" : 
+			[
+				"/home/robot/project/ls65_ros/ls65/elite_ros_ws/build/eli_cs_robot_driver/ament_cmake_environment_hooks/local_setup.dsv"
+			],
+			"type" : "file"
+		},
+		{
+			"backtrace" : 50,
+			"component" : "Unspecified",
+			"destination" : "share/eli_cs_robot_driver",
+			"paths" : 
+			[
+				"/home/robot/project/ls65_ros/ls65/elite_ros_ws/build/eli_cs_robot_driver/ament_cmake_environment_hooks/package.dsv"
+			],
+			"type" : "file"
+		},
+		{
+			"backtrace" : 55,
+			"component" : "Unspecified",
+			"destination" : "share/ament_index/resource_index/packages",
+			"paths" : 
+			[
+				"/home/robot/project/ls65_ros/ls65/elite_ros_ws/build/eli_cs_robot_driver/ament_cmake_index/share/ament_index/resource_index/packages/eli_cs_robot_driver"
+			],
+			"type" : "file"
+		},
+		{
+			"backtrace" : 59,
+			"component" : "Unspecified",
+			"destination" : "share/ament_index/resource_index/rclcpp_components",
+			"paths" : 
+			[
+				"/home/robot/project/ls65_ros/ls65/elite_ros_ws/build/eli_cs_robot_driver/ament_cmake_index/share/ament_index/resource_index/rclcpp_components/eli_cs_robot_driver"
+			],
+			"type" : "file"
+		},
+		{
+			"backtrace" : 63,
+			"component" : "Unspecified",
+			"destination" : "share/ament_index/resource_index/hardware_interface__pluginlib__plugin",
+			"paths" : 
+			[
+				"/home/robot/project/ls65_ros/ls65/elite_ros_ws/build/eli_cs_robot_driver/ament_cmake_index/share/ament_index/resource_index/hardware_interface__pluginlib__plugin/eli_cs_robot_driver"
+			],
+			"type" : "file"
+		},
+		{
+			"backtrace" : 66,
+			"component" : "Unspecified",
+			"destination" : "share/eli_cs_robot_driver/cmake",
+			"exportName" : "export_dashboard_client_component",
+			"exportTargets" : 
+			[
+				{
+					"id" : "dashboard_client_component::@6890427a1f51a3e7e1df",
+					"index" : 2
+				}
+			],
+			"paths" : 
+			[
+				"CMakeFiles/Export/share/eli_cs_robot_driver/cmake/export_dashboard_client_componentExport.cmake"
+			],
+			"type" : "export"
+		},
+		{
+			"backtrace" : 67,
+			"component" : "Unspecified",
+			"destination" : "share/eli_cs_robot_driver/cmake",
+			"exportName" : "export_primary_client_component",
+			"exportTargets" : 
+			[
+				{
+					"id" : "primary_client_component::@6890427a1f51a3e7e1df",
+					"index" : 9
+				}
+			],
+			"paths" : 
+			[
+				"CMakeFiles/Export/share/eli_cs_robot_driver/cmake/export_primary_client_componentExport.cmake"
+			],
+			"type" : "export"
+		},
+		{
+			"backtrace" : 68,
+			"component" : "Unspecified",
+			"destination" : "share/eli_cs_robot_driver/cmake",
+			"exportName" : "export_script_node_component",
+			"exportTargets" : 
+			[
+				{
+					"id" : "script_node_component::@6890427a1f51a3e7e1df",
+					"index" : 11
+				}
+			],
+			"paths" : 
+			[
+				"CMakeFiles/Export/share/eli_cs_robot_driver/cmake/export_script_node_componentExport.cmake"
+			],
+			"type" : "export"
+		},
+		{
+			"backtrace" : 70,
+			"component" : "Unspecified",
+			"destination" : "share/eli_cs_robot_driver/cmake",
+			"paths" : 
+			[
+				"/home/robot/project/ls65_ros/ls65/elite_ros_ws/build/eli_cs_robot_driver/ament_cmake_export_targets/ament_cmake_export_targets-extras.cmake"
+			],
+			"type" : "file"
+		},
+		{
+			"backtrace" : 71,
+			"component" : "Unspecified",
+			"destination" : "share/eli_cs_robot_driver/cmake",
+			"paths" : 
+			[
+				"/home/robot/project/ls65_ros/ls65/elite_ros_ws/build/eli_cs_robot_driver/ament_cmake_export_include_directories/ament_cmake_export_include_directories-extras.cmake"
+			],
+			"type" : "file"
+		},
+		{
+			"backtrace" : 72,
+			"component" : "Unspecified",
+			"destination" : "share/eli_cs_robot_driver/cmake",
+			"paths" : 
+			[
+				"/home/robot/project/ls65_ros/ls65/elite_ros_ws/build/eli_cs_robot_driver/ament_cmake_export_libraries/ament_cmake_export_libraries-extras.cmake"
+			],
+			"type" : "file"
+		},
+		{
+			"backtrace" : 73,
+			"component" : "Unspecified",
+			"destination" : "share/eli_cs_robot_driver/cmake",
+			"paths" : 
+			[
+				"/home/robot/project/ls65_ros/ls65/elite_ros_ws/build/eli_cs_robot_driver/ament_cmake_export_dependencies/ament_cmake_export_dependencies-extras.cmake"
+			],
+			"type" : "file"
+		},
+		{
+			"backtrace" : 74,
+			"component" : "Unspecified",
+			"destination" : "share/eli_cs_robot_driver/cmake",
+			"paths" : 
+			[
+				"/home/robot/project/ls65_ros/ls65/elite_ros_ws/build/eli_cs_robot_driver/ament_cmake_core/eli_cs_robot_driverConfig.cmake",
+				"/home/robot/project/ls65_ros/ls65/elite_ros_ws/build/eli_cs_robot_driver/ament_cmake_core/eli_cs_robot_driverConfig-version.cmake"
+			],
+			"type" : "file"
+		},
+		{
+			"backtrace" : 75,
+			"component" : "Unspecified",
+			"destination" : "share/eli_cs_robot_driver",
+			"paths" : 
+			[
+				"package.xml"
+			],
+			"type" : "file"
+		}
+	],
+	"paths" : 
+	{
+		"build" : ".",
+		"source" : "."
+	}
+}

@@ -1,0 +1,258 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"childIndexes" : 
+					[
+						1,
+						2
+					],
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-.-d98a4857a5fe02f7d2df.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.12"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3,
+						5,
+						6,
+						7,
+						8,
+						9,
+						10,
+						11,
+						12,
+						13,
+						14,
+						15,
+						17,
+						18
+					]
+				},
+				{
+					"build" : "eli_common_interface__py",
+					"jsonFile" : "directory-eli_common_interface__py-69eff83adb8be8826298.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.12"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "/home/robot/project/ls65_ros/ls65/elite_ros_ws/build/eli_common_interface/eli_common_interface__py",
+					"targetIndexes" : 
+					[
+						4
+					]
+				},
+				{
+					"build" : "eli_common_interface__rs",
+					"jsonFile" : "directory-eli_common_interface__rs-5244ecf170c8520dedce.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.12"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "/home/robot/project/ls65_ros/ls65/elite_ros_ws/build/eli_common_interface/eli_common_interface__rs",
+					"targetIndexes" : 
+					[
+						16
+					]
+				}
+			],
+			"name" : "",
+			"projects" : 
+			[
+				{
+					"directoryIndexes" : 
+					[
+						0,
+						1,
+						2
+					],
+					"name" : "eli_common_interface",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3,
+						4,
+						5,
+						6,
+						7,
+						8,
+						9,
+						10,
+						11,
+						12,
+						13,
+						14,
+						15,
+						16,
+						17,
+						18
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 0,
+					"id" : "ament_cmake_python_build_eli_common_interface_egg::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ament_cmake_python_build_eli_common_interface_egg-d338e73da11bb2192ee0.json",
+					"name" : "ament_cmake_python_build_eli_common_interface_egg",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ament_cmake_python_copy_eli_common_interface::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ament_cmake_python_copy_eli_common_interface-03cf11b5669f200a1493.json",
+					"name" : "ament_cmake_python_copy_eli_common_interface",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "eli_common_interface::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-eli_common_interface-4d746cc0b93a54ae4334.json",
+					"name" : "eli_common_interface",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "eli_common_interface__cpp::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-eli_common_interface__cpp-1518b1486374d4ff6fc6.json",
+					"name" : "eli_common_interface__cpp",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "eli_common_interface__py::@2727c9578b3ead645c35",
+					"jsonFile" : "target-eli_common_interface__py-4aa6dfd69d9b3b4ae000.json",
+					"name" : "eli_common_interface__py",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "eli_common_interface__rosidl_generator_c::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-eli_common_interface__rosidl_generator_c-8c71fb440fd4846b65b1.json",
+					"name" : "eli_common_interface__rosidl_generator_c",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "eli_common_interface__rosidl_generator_py::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-eli_common_interface__rosidl_generator_py-38e748d3269d734759b2.json",
+					"name" : "eli_common_interface__rosidl_generator_py",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "eli_common_interface__rosidl_typesupport_c::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-eli_common_interface__rosidl_typesupport_c-a0e4017a97513c3cf1be.json",
+					"name" : "eli_common_interface__rosidl_typesupport_c",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "eli_common_interface__rosidl_typesupport_c__pyext::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-eli_common_interface__rosidl_typesupport_c__pyext-08ca154e65e7d43b92a2.json",
+					"name" : "eli_common_interface__rosidl_typesupport_c__pyext",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "eli_common_interface__rosidl_typesupport_cpp::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-eli_common_interface__rosidl_typesupport_cpp-2d2ee664b779ba13f20f.json",
+					"name" : "eli_common_interface__rosidl_typesupport_cpp",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "eli_common_interface__rosidl_typesupport_fastrtps_c::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-eli_common_interface__rosidl_typesupport_fastrtps_c-2de311bff2c8bc89802f.json",
+					"name" : "eli_common_interface__rosidl_typesupport_fastrtps_c",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "eli_common_interface__rosidl_typesupport_fastrtps_c__pyext::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-eli_common_interface__rosidl_typesupport_fastrtps_c__pyext-a299ee2a797e7f48d02d.json",
+					"name" : "eli_common_interface__rosidl_typesupport_fastrtps_c__pyext",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "eli_common_interface__rosidl_typesupport_fastrtps_cpp::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-eli_common_interface__rosidl_typesupport_fastrtps_cpp-bd57508d90185d479d93.json",
+					"name" : "eli_common_interface__rosidl_typesupport_fastrtps_cpp",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "eli_common_interface__rosidl_typesupport_introspection_c::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-eli_common_interface__rosidl_typesupport_introspection_c-2b029fe3bff056c52922.json",
+					"name" : "eli_common_interface__rosidl_typesupport_introspection_c",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "eli_common_interface__rosidl_typesupport_introspection_c__pyext::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-eli_common_interface__rosidl_typesupport_introspection_c__pyext-4c63617553d3f1ef53b4.json",
+					"name" : "eli_common_interface__rosidl_typesupport_introspection_c__pyext",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "eli_common_interface__rosidl_typesupport_introspection_cpp::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-eli_common_interface__rosidl_typesupport_introspection_cpp-48f582dbc4607ceddec0.json",
+					"name" : "eli_common_interface__rosidl_typesupport_introspection_cpp",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 2,
+					"id" : "eli_common_interface__rs::@a216b070d19f05089764",
+					"jsonFile" : "target-eli_common_interface__rs-02501869a59ac4f05b8d.json",
+					"name" : "eli_common_interface__rs",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "eli_common_interface_uninstall::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-eli_common_interface_uninstall-3b4f4416b41e3ae3cc97.json",
+					"name" : "eli_common_interface_uninstall",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "uninstall::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-uninstall-296728f21cb2d422186b.json",
+					"name" : "uninstall",
+					"projectIndex" : 0
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "/home/robot/project/ls65_ros/ls65/elite_ros_ws/build/eli_common_interface",
+		"source" : "/home/robot/project/ls65_ros/ls65/elite_ros_ws/src/eli_common_interface"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 3
+	}
+}

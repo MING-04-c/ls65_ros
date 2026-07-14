@@ -1,0 +1,25 @@
+{
+  "package_name": "eli_dashboard_interface",
+  "output_dir": "/home/robot/project/ls65_ros/ls65/elite_ros_ws/build/eli_dashboard_interface/rosidl_typesupport_cpp/eli_dashboard_interface",
+  "template_dir": "/opt/ros/humble/share/rosidl_typesupport_cpp/resource",
+  "idl_tuples": [
+    "/home/robot/project/ls65_ros/ls65/elite_ros_ws/build/eli_dashboard_interface/rosidl_adapter/eli_dashboard_interface:srv/Load.idl",
+    "/home/robot/project/ls65_ros/ls65/elite_ros_ws/build/eli_dashboard_interface/rosidl_adapter/eli_dashboard_interface:srv/Popup.idl",
+    "/home/robot/project/ls65_ros/ls65/elite_ros_ws/build/eli_dashboard_interface/rosidl_adapter/eli_dashboard_interface:srv/Log.idl",
+    "/home/robot/project/ls65_ros/ls65/elite_ros_ws/build/eli_dashboard_interface/rosidl_adapter/eli_dashboard_interface:srv/IsSaved.idl",
+    "/home/robot/project/ls65_ros/ls65/elite_ros_ws/build/eli_dashboard_interface/rosidl_adapter/eli_dashboard_interface:srv/CustomRequest.idl"
+  ],
+  "target_dependencies": [
+    "/opt/ros/humble/lib/rosidl_typesupport_cpp/rosidl_typesupport_cpp",
+    "/opt/ros/humble/local/lib/python3.10/dist-packages/rosidl_typesupport_cpp/__init__.py",
+    "/opt/ros/humble/share/rosidl_typesupport_cpp/resource/action__type_support.cpp.em",
+    "/opt/ros/humble/share/rosidl_typesupport_cpp/resource/idl__type_support.cpp.em",
+    "/opt/ros/humble/share/rosidl_typesupport_cpp/resource/msg__type_support.cpp.em",
+    "/opt/ros/humble/share/rosidl_typesupport_cpp/resource/srv__type_support.cpp.em",
+    "/home/robot/project/ls65_ros/ls65/elite_ros_ws/build/eli_dashboard_interface/rosidl_adapter/eli_dashboard_interface/srv/Load.idl",
+    "/home/robot/project/ls65_ros/ls65/elite_ros_ws/build/eli_dashboard_interface/rosidl_adapter/eli_dashboard_interface/srv/Popup.idl",
+    "/home/robot/project/ls65_ros/ls65/elite_ros_ws/build/eli_dashboard_interface/rosidl_adapter/eli_dashboard_interface/srv/Log.idl",
+    "/home/robot/project/ls65_ros/ls65/elite_ros_ws/build/eli_dashboard_interface/rosidl_adapter/eli_dashboard_interface/srv/IsSaved.idl",
+    "/home/robot/project/ls65_ros/ls65/elite_ros_ws/build/eli_dashboard_interface/rosidl_adapter/eli_dashboard_interface/srv/CustomRequest.idl"
+  ]
+}

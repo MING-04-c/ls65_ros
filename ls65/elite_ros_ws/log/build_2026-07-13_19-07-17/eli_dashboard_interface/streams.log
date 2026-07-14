@@ -1,0 +1,278 @@
+[0.012s] Invoking command in '/home/robot/project/ls65_ros/ls65/elite_ros_ws/build/eli_dashboard_interface': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake --build /home/robot/project/ls65_ros/ls65/elite_ros_ws/build/eli_dashboard_interface -- -j16 -l16
+[0.037s] [35m[1mConsolidate compiler generated dependencies of target eli_dashboard_interface__rosidl_generator_c[0m
+[0.046s] [ 10%] Built target eli_dashboard_interface__rosidl_generator_c
+[0.046s] [ 12%] Built target eli_dashboard_interface__rs
+[0.050s] [ 12%] Built target ament_cmake_python_copy_eli_dashboard_interface
+[0.051s] [ 14%] Built target eli_dashboard_interface__cpp
+[0.052s] [35m[1mConsolidate compiler generated dependencies of target eli_dashboard_interface__rosidl_typesupport_introspection_c[0m
+[0.057s] [35m[1mConsolidate compiler generated dependencies of target eli_dashboard_interface__rosidl_typesupport_fastrtps_c[0m
+[0.057s] [35m[1mConsolidate compiler generated dependencies of target eli_dashboard_interface__rosidl_typesupport_c[0m
+[0.062s] [35m[1mConsolidate compiler generated dependencies of target eli_dashboard_interface__rosidl_typesupport_fastrtps_cpp[0m
+[0.062s] [ 25%] Built target eli_dashboard_interface__rosidl_typesupport_introspection_c
+[0.064s] [35m[1mConsolidate compiler generated dependencies of target eli_dashboard_interface__rosidl_typesupport_cpp[0m
+[0.065s] [35m[1mConsolidate compiler generated dependencies of target eli_dashboard_interface__rosidl_typesupport_introspection_cpp[0m
+[0.066s] [ 35%] Built target eli_dashboard_interface__rosidl_typesupport_c
+[0.082s] [ 46%] Built target eli_dashboard_interface__rosidl_typesupport_fastrtps_c
+[0.088s] [ 57%] Built target eli_dashboard_interface__rosidl_typesupport_cpp
+[0.088s] [ 71%] Built target eli_dashboard_interface__rosidl_typesupport_introspection_cpp
+[0.088s] [ 79%] Built target eli_dashboard_interface__rosidl_typesupport_fastrtps_cpp
+[0.095s] [ 79%] Built target eli_dashboard_interface
+[0.110s] [ 81%] Built target eli_dashboard_interface__py
+[0.118s] [35m[1mConsolidate compiler generated dependencies of target eli_dashboard_interface__rosidl_generator_py[0m
+[0.128s] [ 90%] Built target eli_dashboard_interface__rosidl_generator_py
+[0.136s] [35m[1mConsolidate compiler generated dependencies of target eli_dashboard_interface__rosidl_typesupport_fastrtps_c__pyext[0m
+[0.138s] [35m[1mConsolidate compiler generated dependencies of target eli_dashboard_interface__rosidl_typesupport_introspection_c__pyext[0m
+[0.138s] [35m[1mConsolidate compiler generated dependencies of target eli_dashboard_interface__rosidl_typesupport_c__pyext[0m
+[0.147s] [ 96%] Built target eli_dashboard_interface__rosidl_typesupport_introspection_c__pyext
+[0.147s] [ 96%] Built target eli_dashboard_interface__rosidl_typesupport_c__pyext
+[0.148s] [100%] Built target eli_dashboard_interface__rosidl_typesupport_fastrtps_c__pyext
+[0.271s] running egg_info
+[0.272s] writing eli_dashboard_interface.egg-info/PKG-INFO
+[0.272s] writing dependency_links to eli_dashboard_interface.egg-info/dependency_links.txt
+[0.272s] writing top-level names to eli_dashboard_interface.egg-info/top_level.txt
+[0.274s] reading manifest file 'eli_dashboard_interface.egg-info/SOURCES.txt'
+[0.275s] writing manifest file 'eli_dashboard_interface.egg-info/SOURCES.txt'
+[0.298s] [100%] Built target ament_cmake_python_build_eli_dashboard_interface_egg
+[0.304s] Invoked command in '/home/robot/project/ls65_ros/ls65/elite_ros_ws/build/eli_dashboard_interface' returned '0': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake --build /home/robot/project/ls65_ros/ls65/elite_ros_ws/build/eli_dashboard_interface -- -j16 -l16
+[0.305s] Invoking command in '/home/robot/project/ls65_ros/ls65/elite_ros_ws/build/eli_dashboard_interface': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake --install /home/robot/project/ls65_ros/ls65/elite_ros_ws/build/eli_dashboard_interface
+[0.314s] -- Install configuration: ""
+[0.314s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/share/ament_index/resource_index/rosidl_interfaces/eli_dashboard_interface
+[0.314s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface
+[0.314s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/msg
+[0.314s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/msg/rosidl_generator_c__visibility_control.h
+[0.314s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv
+[0.314s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv/log.h
+[0.314s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv/detail
+[0.315s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv/detail/log__struct.h
+[0.315s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv/detail/custom_request__functions.c
+[0.315s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv/detail/log__functions.h
+[0.315s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv/detail/load__type_support.h
+[0.315s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv/detail/popup__type_support.h
+[0.315s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv/detail/popup__functions.c
+[0.315s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv/detail/log__type_support.h
+[0.315s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv/detail/is_saved__functions.h
+[0.315s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv/detail/load__struct.h
+[0.316s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv/detail/load__functions.c
+[0.316s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv/detail/is_saved__struct.h
+[0.316s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv/detail/custom_request__type_support.h
+[0.316s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv/detail/log__functions.c
+[0.316s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv/detail/is_saved__functions.c
+[0.316s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv/detail/is_saved__type_support.h
+[0.316s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv/detail/load__functions.h
+[0.316s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv/detail/custom_request__functions.h
+[0.317s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv/detail/popup__functions.h
+[0.317s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv/detail/custom_request__struct.h
+[0.317s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv/detail/popup__struct.h
+[0.317s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv/custom_request.h
+[0.317s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv/is_saved.h
+[0.317s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv/load.h
+[0.317s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv/popup.h
+[0.317s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/share/eli_dashboard_interface/environment/library_path.sh
+[0.317s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/share/eli_dashboard_interface/environment/library_path.dsv
+[0.318s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/lib/libeli_dashboard_interface__rosidl_generator_c.so
+[0.318s] -- Set runtime path of "/home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/lib/libeli_dashboard_interface__rosidl_generator_c.so" to ""
+[0.318s] -- Up-to-date: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface
+[0.318s] -- Up-to-date: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/msg
+[0.318s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/msg/rosidl_typesupport_fastrtps_c__visibility_control.h
+[0.318s] -- Up-to-date: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv
+[0.318s] -- Up-to-date: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv/detail
+[0.318s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv/detail/popup__rosidl_typesupport_fastrtps_c.h
+[0.318s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv/detail/is_saved__rosidl_typesupport_fastrtps_c.h
+[0.319s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv/detail/custom_request__rosidl_typesupport_fastrtps_c.h
+[0.319s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv/detail/log__rosidl_typesupport_fastrtps_c.h
+[0.319s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv/detail/load__rosidl_typesupport_fastrtps_c.h
+[0.319s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/lib/libeli_dashboard_interface__rosidl_typesupport_fastrtps_c.so
+[0.319s] -- Set runtime path of "/home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/lib/libeli_dashboard_interface__rosidl_typesupport_fastrtps_c.so" to ""
+[0.319s] -- Up-to-date: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface
+[0.320s] -- Up-to-date: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/msg
+[0.320s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/msg/rosidl_typesupport_introspection_c__visibility_control.h
+[0.320s] -- Up-to-date: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv
+[0.320s] -- Up-to-date: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv/detail
+[0.320s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv/detail/custom_request__type_support.c
+[0.320s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv/detail/load__type_support.c
+[0.320s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv/detail/is_saved__type_support.c
+[0.320s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv/detail/log__type_support.c
+[0.320s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv/detail/popup__type_support.c
+[0.320s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv/detail/custom_request__rosidl_typesupport_introspection_c.h
+[0.320s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv/detail/is_saved__rosidl_typesupport_introspection_c.h
+[0.320s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv/detail/popup__rosidl_typesupport_introspection_c.h
+[0.321s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv/detail/load__rosidl_typesupport_introspection_c.h
+[0.321s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv/detail/log__rosidl_typesupport_introspection_c.h
+[0.321s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/lib/libeli_dashboard_interface__rosidl_typesupport_introspection_c.so
+[0.321s] -- Set runtime path of "/home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/lib/libeli_dashboard_interface__rosidl_typesupport_introspection_c.so" to ""
+[0.321s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/lib/libeli_dashboard_interface__rosidl_typesupport_c.so
+[0.321s] -- Set runtime path of "/home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/lib/libeli_dashboard_interface__rosidl_typesupport_c.so" to ""
+[0.322s] -- Up-to-date: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface
+[0.322s] -- Up-to-date: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/msg
+[0.322s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/msg/rosidl_generator_cpp__visibility_control.hpp
+[0.322s] -- Up-to-date: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv
+[0.322s] -- Up-to-date: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv/detail
+[0.322s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv/detail/is_saved__type_support.hpp
+[0.322s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv/detail/custom_request__traits.hpp
+[0.322s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv/detail/custom_request__builder.hpp
+[0.322s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv/detail/log__builder.hpp
+[0.322s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv/detail/popup__struct.hpp
+[0.322s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv/detail/log__type_support.hpp
+[0.323s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv/detail/load__struct.hpp
+[0.323s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv/detail/popup__builder.hpp
+[0.323s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv/detail/log__traits.hpp
+[0.323s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv/detail/is_saved__traits.hpp
+[0.323s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv/detail/popup__type_support.hpp
+[0.323s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv/detail/is_saved__builder.hpp
+[0.323s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv/detail/load__traits.hpp
+[0.323s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv/detail/load__builder.hpp
+[0.323s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv/detail/is_saved__struct.hpp
+[0.323s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv/detail/log__struct.hpp
+[0.324s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv/detail/popup__traits.hpp
+[0.324s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv/detail/custom_request__struct.hpp
+[0.324s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv/detail/load__type_support.hpp
+[0.324s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv/detail/custom_request__type_support.hpp
+[0.324s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv/log.hpp
+[0.324s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv/is_saved.hpp
+[0.324s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv/custom_request.hpp
+[0.324s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv/load.hpp
+[0.324s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv/popup.hpp
+[0.325s] -- Up-to-date: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface
+[0.325s] -- Up-to-date: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/msg
+[0.325s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/msg/rosidl_typesupport_fastrtps_cpp__visibility_control.h
+[0.325s] -- Up-to-date: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv
+[0.325s] -- Up-to-date: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv/detail
+[0.325s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv/detail/dds_fastrtps
+[0.325s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv/detail/log__rosidl_typesupport_fastrtps_cpp.hpp
+[0.325s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv/detail/load__rosidl_typesupport_fastrtps_cpp.hpp
+[0.325s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv/detail/is_saved__rosidl_typesupport_fastrtps_cpp.hpp
+[0.325s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv/detail/popup__rosidl_typesupport_fastrtps_cpp.hpp
+[0.325s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv/detail/custom_request__rosidl_typesupport_fastrtps_cpp.hpp
+[0.325s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/lib/libeli_dashboard_interface__rosidl_typesupport_fastrtps_cpp.so
+[0.326s] -- Set runtime path of "/home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/lib/libeli_dashboard_interface__rosidl_typesupport_fastrtps_cpp.so" to ""
+[0.326s] -- Up-to-date: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface
+[0.326s] -- Up-to-date: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv
+[0.326s] -- Up-to-date: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv/detail
+[0.326s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv/detail/log__rosidl_typesupport_introspection_cpp.hpp
+[0.326s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv/detail/custom_request__type_support.cpp
+[0.326s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv/detail/load__rosidl_typesupport_introspection_cpp.hpp
+[0.327s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv/detail/custom_request__rosidl_typesupport_introspection_cpp.hpp
+[0.327s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv/detail/load__type_support.cpp
+[0.327s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv/detail/is_saved__rosidl_typesupport_introspection_cpp.hpp
+[0.327s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv/detail/popup__type_support.cpp
+[0.327s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv/detail/log__type_support.cpp
+[0.327s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv/detail/popup__rosidl_typesupport_introspection_cpp.hpp
+[0.327s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/include/eli_dashboard_interface/eli_dashboard_interface/srv/detail/is_saved__type_support.cpp
+[0.328s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/lib/libeli_dashboard_interface__rosidl_typesupport_introspection_cpp.so
+[0.328s] -- Set runtime path of "/home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/lib/libeli_dashboard_interface__rosidl_typesupport_introspection_cpp.so" to ""
+[0.328s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/lib/libeli_dashboard_interface__rosidl_typesupport_cpp.so
+[0.329s] -- Set runtime path of "/home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/lib/libeli_dashboard_interface__rosidl_typesupport_cpp.so" to ""
+[0.329s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/share/eli_dashboard_interface/environment/pythonpath.sh
+[0.329s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/share/eli_dashboard_interface/environment/pythonpath.dsv
+[0.329s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/local/lib/python3.10/dist-packages/eli_dashboard_interface-0.0.1-py3.10.egg-info
+[0.329s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/local/lib/python3.10/dist-packages/eli_dashboard_interface-0.0.1-py3.10.egg-info/dependency_links.txt
+[0.329s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/local/lib/python3.10/dist-packages/eli_dashboard_interface-0.0.1-py3.10.egg-info/top_level.txt
+[0.329s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/local/lib/python3.10/dist-packages/eli_dashboard_interface-0.0.1-py3.10.egg-info/SOURCES.txt
+[0.329s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/local/lib/python3.10/dist-packages/eli_dashboard_interface-0.0.1-py3.10.egg-info/PKG-INFO
+[0.329s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/local/lib/python3.10/dist-packages/eli_dashboard_interface
+[0.329s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/local/lib/python3.10/dist-packages/eli_dashboard_interface/libeli_dashboard_interface__rosidl_generator_py.so
+[0.330s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/local/lib/python3.10/dist-packages/eli_dashboard_interface/_eli_dashboard_interface_s.ep.rosidl_typesupport_c.c
+[0.330s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/local/lib/python3.10/dist-packages/eli_dashboard_interface/__init__.py
+[0.330s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/local/lib/python3.10/dist-packages/eli_dashboard_interface/eli_dashboard_interface_s__rosidl_typesupport_introspection_c.cpython-310-x86_64-linux-gnu.so
+[0.330s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/local/lib/python3.10/dist-packages/eli_dashboard_interface/_eli_dashboard_interface_s.ep.rosidl_typesupport_introspection_c.c
+[0.330s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/local/lib/python3.10/dist-packages/eli_dashboard_interface/eli_dashboard_interface_s__rosidl_typesupport_fastrtps_c.cpython-310-x86_64-linux-gnu.so
+[0.330s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/local/lib/python3.10/dist-packages/eli_dashboard_interface/eli_dashboard_interface_s__rosidl_typesupport_c.cpython-310-x86_64-linux-gnu.so
+[0.330s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/local/lib/python3.10/dist-packages/eli_dashboard_interface/srv
+[0.331s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/local/lib/python3.10/dist-packages/eli_dashboard_interface/srv/_is_saved.py
+[0.331s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/local/lib/python3.10/dist-packages/eli_dashboard_interface/srv/__init__.py
+[0.331s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/local/lib/python3.10/dist-packages/eli_dashboard_interface/srv/_popup_s.c
+[0.331s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/local/lib/python3.10/dist-packages/eli_dashboard_interface/srv/_is_saved_s.c
+[0.331s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/local/lib/python3.10/dist-packages/eli_dashboard_interface/srv/_load_s.c
+[0.331s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/local/lib/python3.10/dist-packages/eli_dashboard_interface/srv/_custom_request.py
+[0.331s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/local/lib/python3.10/dist-packages/eli_dashboard_interface/srv/_custom_request_s.c
+[0.331s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/local/lib/python3.10/dist-packages/eli_dashboard_interface/srv/_log_s.c
+[0.332s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/local/lib/python3.10/dist-packages/eli_dashboard_interface/srv/_log.py
+[0.332s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/local/lib/python3.10/dist-packages/eli_dashboard_interface/srv/_load.py
+[0.332s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/local/lib/python3.10/dist-packages/eli_dashboard_interface/srv/_popup.py
+[0.332s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/local/lib/python3.10/dist-packages/eli_dashboard_interface/_eli_dashboard_interface_s.ep.rosidl_typesupport_fastrtps_c.c
+[0.362s] Listing '/home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/local/lib/python3.10/dist-packages/eli_dashboard_interface'...
+[0.362s] Compiling '/home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/local/lib/python3.10/dist-packages/eli_dashboard_interface/__init__.py'...
+[0.362s] Listing '/home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/local/lib/python3.10/dist-packages/eli_dashboard_interface/srv'...
+[0.362s] Compiling '/home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/local/lib/python3.10/dist-packages/eli_dashboard_interface/srv/__init__.py'...
+[0.362s] Compiling '/home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/local/lib/python3.10/dist-packages/eli_dashboard_interface/srv/_custom_request.py'...
+[0.362s] Compiling '/home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/local/lib/python3.10/dist-packages/eli_dashboard_interface/srv/_is_saved.py'...
+[0.362s] Compiling '/home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/local/lib/python3.10/dist-packages/eli_dashboard_interface/srv/_load.py'...
+[0.363s] Compiling '/home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/local/lib/python3.10/dist-packages/eli_dashboard_interface/srv/_log.py'...
+[0.363s] Compiling '/home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/local/lib/python3.10/dist-packages/eli_dashboard_interface/srv/_popup.py'...
+[0.369s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/local/lib/python3.10/dist-packages/eli_dashboard_interface/eli_dashboard_interface_s__rosidl_typesupport_fastrtps_c.cpython-310-x86_64-linux-gnu.so
+[0.370s] -- Set runtime path of "/home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/local/lib/python3.10/dist-packages/eli_dashboard_interface/eli_dashboard_interface_s__rosidl_typesupport_fastrtps_c.cpython-310-x86_64-linux-gnu.so" to ""
+[0.370s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/local/lib/python3.10/dist-packages/eli_dashboard_interface/eli_dashboard_interface_s__rosidl_typesupport_introspection_c.cpython-310-x86_64-linux-gnu.so
+[0.370s] -- Set runtime path of "/home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/local/lib/python3.10/dist-packages/eli_dashboard_interface/eli_dashboard_interface_s__rosidl_typesupport_introspection_c.cpython-310-x86_64-linux-gnu.so" to ""
+[0.370s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/local/lib/python3.10/dist-packages/eli_dashboard_interface/eli_dashboard_interface_s__rosidl_typesupport_c.cpython-310-x86_64-linux-gnu.so
+[0.370s] -- Set runtime path of "/home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/local/lib/python3.10/dist-packages/eli_dashboard_interface/eli_dashboard_interface_s__rosidl_typesupport_c.cpython-310-x86_64-linux-gnu.so" to ""
+[0.370s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/lib/libeli_dashboard_interface__rosidl_generator_py.so
+[0.371s] -- Set runtime path of "/home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/lib/libeli_dashboard_interface__rosidl_generator_py.so" to ""
+[0.371s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/share/ament_index/resource_index/rust_packages/eli_dashboard_interface
+[0.371s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/share/eli_dashboard_interface/rust
+[0.371s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/share/eli_dashboard_interface/rust/src
+[0.371s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/share/eli_dashboard_interface/rust/src/srv.rs
+[0.371s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/share/eli_dashboard_interface/rust/src/lib.rs
+[0.371s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/share/eli_dashboard_interface/rust/src/srv
+[0.371s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/share/eli_dashboard_interface/rust/src/srv/rmw.rs
+[0.371s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/share/eli_dashboard_interface/rust/build.rs
+[0.372s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/share/eli_dashboard_interface/rust/Cargo.toml
+[0.372s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/share/eli_dashboard_interface/srv/Load.idl
+[0.372s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/share/eli_dashboard_interface/srv/Popup.idl
+[0.373s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/share/eli_dashboard_interface/srv/Log.idl
+[0.373s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/share/eli_dashboard_interface/srv/IsSaved.idl
+[0.373s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/share/eli_dashboard_interface/srv/CustomRequest.idl
+[0.373s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/share/eli_dashboard_interface/srv/Load.srv
+[0.374s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/share/eli_dashboard_interface/srv/Load_Request.msg
+[0.374s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/share/eli_dashboard_interface/srv/Load_Response.msg
+[0.374s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/share/eli_dashboard_interface/srv/Popup.srv
+[0.374s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/share/eli_dashboard_interface/srv/Popup_Request.msg
+[0.374s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/share/eli_dashboard_interface/srv/Popup_Response.msg
+[0.374s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/share/eli_dashboard_interface/srv/Log.srv
+[0.375s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/share/eli_dashboard_interface/srv/Log_Request.msg
+[0.376s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/share/eli_dashboard_interface/srv/Log_Response.msg
+[0.376s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/share/eli_dashboard_interface/srv/IsSaved.srv
+[0.376s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/share/eli_dashboard_interface/srv/IsSaved_Request.msg
+[0.376s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/share/eli_dashboard_interface/srv/IsSaved_Response.msg
+[0.377s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/share/eli_dashboard_interface/srv/CustomRequest.srv
+[0.377s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/share/eli_dashboard_interface/srv/CustomRequest_Request.msg
+[0.377s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/share/eli_dashboard_interface/srv/CustomRequest_Response.msg
+[0.377s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/share/ament_index/resource_index/package_run_dependencies/eli_dashboard_interface
+[0.377s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/share/ament_index/resource_index/parent_prefix_path/eli_dashboard_interface
+[0.377s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/share/eli_dashboard_interface/environment/ament_prefix_path.sh
+[0.378s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/share/eli_dashboard_interface/environment/ament_prefix_path.dsv
+[0.378s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/share/eli_dashboard_interface/environment/path.sh
+[0.378s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/share/eli_dashboard_interface/environment/path.dsv
+[0.378s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/share/eli_dashboard_interface/local_setup.bash
+[0.378s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/share/eli_dashboard_interface/local_setup.sh
+[0.379s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/share/eli_dashboard_interface/local_setup.zsh
+[0.379s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/share/eli_dashboard_interface/local_setup.dsv
+[0.379s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/share/eli_dashboard_interface/package.dsv
+[0.379s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/share/ament_index/resource_index/packages/eli_dashboard_interface
+[0.379s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/share/eli_dashboard_interface/cmake/export_eli_dashboard_interface__rosidl_generator_cExport.cmake
+[0.379s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/share/eli_dashboard_interface/cmake/export_eli_dashboard_interface__rosidl_generator_cExport-noconfig.cmake
+[0.379s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/share/eli_dashboard_interface/cmake/export_eli_dashboard_interface__rosidl_typesupport_fastrtps_cExport.cmake
+[0.379s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/share/eli_dashboard_interface/cmake/export_eli_dashboard_interface__rosidl_typesupport_fastrtps_cExport-noconfig.cmake
+[0.379s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/share/eli_dashboard_interface/cmake/eli_dashboard_interface__rosidl_typesupport_introspection_cExport.cmake
+[0.379s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/share/eli_dashboard_interface/cmake/eli_dashboard_interface__rosidl_typesupport_introspection_cExport-noconfig.cmake
+[0.380s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/share/eli_dashboard_interface/cmake/eli_dashboard_interface__rosidl_typesupport_cExport.cmake
+[0.380s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/share/eli_dashboard_interface/cmake/eli_dashboard_interface__rosidl_typesupport_cExport-noconfig.cmake
+[0.380s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/share/eli_dashboard_interface/cmake/export_eli_dashboard_interface__rosidl_generator_cppExport.cmake
+[0.380s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/share/eli_dashboard_interface/cmake/export_eli_dashboard_interface__rosidl_typesupport_fastrtps_cppExport.cmake
+[0.380s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/share/eli_dashboard_interface/cmake/export_eli_dashboard_interface__rosidl_typesupport_fastrtps_cppExport-noconfig.cmake
+[0.380s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/share/eli_dashboard_interface/cmake/eli_dashboard_interface__rosidl_typesupport_introspection_cppExport.cmake
+[0.380s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/share/eli_dashboard_interface/cmake/eli_dashboard_interface__rosidl_typesupport_introspection_cppExport-noconfig.cmake
+[0.380s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/share/eli_dashboard_interface/cmake/eli_dashboard_interface__rosidl_typesupport_cppExport.cmake
+[0.380s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/share/eli_dashboard_interface/cmake/eli_dashboard_interface__rosidl_typesupport_cppExport-noconfig.cmake
+[0.380s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/share/eli_dashboard_interface/cmake/export_eli_dashboard_interface__rosidl_generator_pyExport.cmake
+[0.380s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/share/eli_dashboard_interface/cmake/export_eli_dashboard_interface__rosidl_generator_pyExport-noconfig.cmake
+[0.380s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/share/eli_dashboard_interface/cmake/rosidl_cmake-extras.cmake
+[0.381s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/share/eli_dashboard_interface/cmake/ament_cmake_export_include_directories-extras.cmake
+[0.381s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/share/eli_dashboard_interface/cmake/ament_cmake_export_libraries-extras.cmake
+[0.381s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/share/eli_dashboard_interface/cmake/ament_cmake_export_targets-extras.cmake
+[0.381s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/share/eli_dashboard_interface/cmake/rosidl_cmake_export_typesupport_targets-extras.cmake
+[0.381s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/share/eli_dashboard_interface/cmake/ament_cmake_export_dependencies-extras.cmake
+[0.381s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/share/eli_dashboard_interface/cmake/rosidl_cmake_export_typesupport_libraries-extras.cmake
+[0.381s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/share/eli_dashboard_interface/cmake/eli_dashboard_interfaceConfig.cmake
+[0.382s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/share/eli_dashboard_interface/cmake/eli_dashboard_interfaceConfig-version.cmake
+[0.382s] -- Installing: /home/robot/project/ls65_ros/ls65/elite_ros_ws/install/eli_dashboard_interface/share/eli_dashboard_interface/package.xml
+[0.389s] Invoked command in '/home/robot/project/ls65_ros/ls65/elite_ros_ws/build/eli_dashboard_interface' returned '0': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake --install /home/robot/project/ls65_ros/ls65/elite_ros_ws/build/eli_dashboard_interface

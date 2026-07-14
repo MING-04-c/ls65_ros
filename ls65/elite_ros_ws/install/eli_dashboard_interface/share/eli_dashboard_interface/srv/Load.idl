@@ -1,0 +1,19 @@
+// generated from rosidl_adapter/resource/srv.idl.em
+// with input from eli_dashboard_interface/srv/Load.srv
+// generated code does not contain a copyright notice
+
+
+module eli_dashboard_interface {
+  module srv {
+    @verbatim (language="comment", text=
+      "Service to load task or configure")
+    struct Load_Request {
+      string filename;
+    };
+    struct Load_Response {
+      string answer;
+
+      boolean success;
+    };
+  };
+};

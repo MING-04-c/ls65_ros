@@ -1,0 +1,14 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : [],
+		"files" : [],
+		"nodes" : []
+	},
+	"installers" : [],
+	"paths" : 
+	{
+		"build" : "eli_common_interface__py",
+		"source" : "/home/robot/project/ls65_ros/ls65/elite_ros_ws/build/eli_common_interface/eli_common_interface__py"
+	}
+}

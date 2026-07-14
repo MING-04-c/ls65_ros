@@ -1,0 +1,21 @@
+// generated from rosidl_adapter/resource/srv.idl.em
+// with input from eli_dashboard_interface/srv/Popup.srv
+// generated code does not contain a copyright notice
+
+
+module eli_dashboard_interface {
+  module srv {
+    @verbatim (language="comment", text=
+      "Service to popup")
+    struct Popup_Request {
+      string arg;
+
+      string message;
+    };
+    struct Popup_Response {
+      boolean success;
+
+      string message;
+    };
+  };
+};

@@ -1,0 +1,12 @@
+/home/robot/project/ls65_ros/ls65/elite_ros_ws/build/eli_common_interface/rosidl_adapter/eli_common_interface:srv/GetTaskStatus.idl
+/home/robot/project/ls65_ros/ls65/elite_ros_ws/build/eli_common_interface/rosidl_adapter/eli_common_interface:srv/GetRobotMode.idl
+/home/robot/project/ls65_ros/ls65/elite_ros_ws/build/eli_common_interface/rosidl_adapter/eli_common_interface:srv/GetSafetyMode.idl
+/home/robot/project/ls65_ros/ls65/elite_ros_ws/build/eli_common_interface/rosidl_adapter/eli_common_interface:srv/SetIO.idl
+/home/robot/project/ls65_ros/ls65/elite_ros_ws/build/eli_common_interface/rosidl_adapter/eli_common_interface:srv/SetSpeedSliderFraction.idl
+/home/robot/project/ls65_ros/ls65/elite_ros_ws/build/eli_common_interface/rosidl_adapter/eli_common_interface:srv/SetPayload.idl
+/home/robot/project/ls65_ros/ls65/elite_ros_ws/build/eli_common_interface/rosidl_adapter/eli_common_interface:msg/RobotMode.idl
+/home/robot/project/ls65_ros/ls65/elite_ros_ws/build/eli_common_interface/rosidl_adapter/eli_common_interface:msg/TaskStatus.idl
+/home/robot/project/ls65_ros/ls65/elite_ros_ws/build/eli_common_interface/rosidl_adapter/eli_common_interface:msg/SafetyMode.idl
+/home/robot/project/ls65_ros/ls65/elite_ros_ws/build/eli_common_interface/rosidl_adapter/eli_common_interface:msg/Analog.idl
+/home/robot/project/ls65_ros/ls65/elite_ros_ws/build/eli_common_interface/rosidl_adapter/eli_common_interface:msg/IOState.idl
+/home/robot/project/ls65_ros/ls65/elite_ros_ws/build/eli_common_interface/rosidl_adapter/eli_common_interface:msg/ToolData.idl

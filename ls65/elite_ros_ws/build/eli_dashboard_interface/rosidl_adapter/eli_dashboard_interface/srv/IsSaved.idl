@@ -1,0 +1,19 @@
+// generated from rosidl_adapter/resource/srv.idl.em
+// with input from eli_dashboard_interface/srv/IsSaved.srv
+// generated code does not contain a copyright notice
+
+
+module eli_dashboard_interface {
+  module srv {
+    struct IsSaved_Request {
+      uint8 structure_needs_at_least_one_member;
+    };
+    struct IsSaved_Response {
+      boolean success;
+
+      string message;
+
+      boolean is_saved;
+    };
+  };
+};

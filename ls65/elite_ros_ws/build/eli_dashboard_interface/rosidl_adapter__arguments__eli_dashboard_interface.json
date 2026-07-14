@@ -1,0 +1,10 @@
+{
+  "package_name": "eli_dashboard_interface",
+  "non_idl_tuples": [
+    "/home/robot/project/ls65_ros/ls65/elite_ros_ws/src/eli_dashboard_interface:srv/Load.srv",
+    "/home/robot/project/ls65_ros/ls65/elite_ros_ws/src/eli_dashboard_interface:srv/Popup.srv",
+    "/home/robot/project/ls65_ros/ls65/elite_ros_ws/src/eli_dashboard_interface:srv/Log.srv",
+    "/home/robot/project/ls65_ros/ls65/elite_ros_ws/src/eli_dashboard_interface:srv/IsSaved.srv",
+    "/home/robot/project/ls65_ros/ls65/elite_ros_ws/src/eli_dashboard_interface:srv/CustomRequest.srv"
+  ]
+}

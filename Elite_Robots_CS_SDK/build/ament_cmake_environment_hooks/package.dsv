@@ -1,0 +1,4 @@
+source;share/elite_cs_series_sdk/local_setup.bash
+source;share/elite_cs_series_sdk/local_setup.dsv
+source;share/elite_cs_series_sdk/local_setup.sh
+source;share/elite_cs_series_sdk/local_setup.zsh

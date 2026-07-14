@@ -1,0 +1,20 @@
+// generated from rosidl_adapter/resource/srv.idl.em
+// with input from eli_common_interface/srv/GetTaskStatus.srv
+// generated code does not contain a copyright notice
+
+#include "eli_common_interface/msg/TaskStatus.idl"
+
+module eli_common_interface {
+  module srv {
+    struct GetTaskStatus_Request {
+      uint8 structure_needs_at_least_one_member;
+    };
+    struct GetTaskStatus_Response {
+      boolean success;
+
+      string message;
+
+      eli_common_interface::msg::TaskStatus status;
+    };
+  };
+};

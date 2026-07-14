@@ -1,0 +1,3 @@
+ELITE_CS_ROBOT_ROS_DRIVER::DashboardClient;lib/libdashboard_client_component.so
+ELITE_CS_ROBOT_ROS_DRIVER::PrimaryClient;lib/libprimary_client_component.so
+ELITE_CS_ROBOT_ROS_DRIVER::ScriptNode;lib/libscript_node_component.so

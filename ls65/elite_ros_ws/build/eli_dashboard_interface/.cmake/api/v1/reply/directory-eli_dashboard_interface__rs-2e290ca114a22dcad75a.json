@@ -1,0 +1,14 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : [],
+		"files" : [],
+		"nodes" : []
+	},
+	"installers" : [],
+	"paths" : 
+	{
+		"build" : "eli_dashboard_interface__rs",
+		"source" : "/home/robot/project/ls65_ros/ls65/elite_ros_ws/build/eli_dashboard_interface/eli_dashboard_interface__rs"
+	}
+}
