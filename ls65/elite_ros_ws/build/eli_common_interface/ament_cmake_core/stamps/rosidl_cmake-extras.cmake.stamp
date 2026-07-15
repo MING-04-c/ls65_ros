@@ -1,4 +1,0 @@
-# generated from rosidl_cmake/cmake/rosidl_cmake-extras.cmake.in
-
-set(eli_common_interface_IDL_FILES "srv/GetTaskStatus.idl;srv/GetRobotMode.idl;srv/GetSafetyMode.idl;srv/SetIO.idl;srv/SetSpeedSliderFraction.idl;srv/SetPayload.idl;msg/RobotMode.idl;msg/TaskStatus.idl;msg/SafetyMode.idl;msg/Analog.idl;msg/IOState.idl;msg/ToolData.idl")
-set(eli_common_interface_INTERFACE_FILES "srv/GetTaskStatus.srv;srv/GetTaskStatus_Request.msg;srv/GetTaskStatus_Response.msg;srv/GetRobotMode.srv;srv/GetRobotMode_Request.msg;srv/GetRobotMode_Response.msg;srv/GetSafetyMode.srv;srv/GetSafetyMode_Request.msg;srv/GetSafetyMode_Response.msg;srv/SetIO.srv;srv/SetIO_Request.msg;srv/SetIO_Response.msg;srv/SetSpeedSliderFraction.srv;srv/SetSpeedSliderFraction_Request.msg;srv/SetSpeedSliderFraction_Response.msg;srv/SetPayload.srv;srv/SetPayload_Request.msg;srv/SetPayload_Response.msg;msg/RobotMode.msg;msg/TaskStatus.msg;msg/SafetyMode.msg;msg/Analog.msg;msg/IOState.msg;msg/ToolData.msg")

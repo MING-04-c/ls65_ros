@@ -1,7 +1,0 @@
-setup.py
-eli_cs_robot_moveit_config/__init__.py
-eli_cs_robot_moveit_config/launch_common.py
-eli_cs_robot_moveit_config.egg-info/PKG-INFO
-eli_cs_robot_moveit_config.egg-info/SOURCES.txt
-eli_cs_robot_moveit_config.egg-info/dependency_links.txt
-eli_cs_robot_moveit_config.egg-info/top_level.txt

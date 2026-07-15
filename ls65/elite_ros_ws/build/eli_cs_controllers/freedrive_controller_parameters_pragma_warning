@@ -1,1 +1,0 @@
-#pragma message("#include \"freedrive_controller_parameters.hpp\" is deprecated. Use #include <eli_cs_controllers/freedrive_controller_parameters.hpp> instead.")

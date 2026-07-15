@@ -1,5 +1,0 @@
-/home/robot/project/ls65_ros/ls65/elite_ros_ws/build/eli_dashboard_interface/rosidl_adapter/eli_dashboard_interface:srv/Load.idl
-/home/robot/project/ls65_ros/ls65/elite_ros_ws/build/eli_dashboard_interface/rosidl_adapter/eli_dashboard_interface:srv/Popup.idl
-/home/robot/project/ls65_ros/ls65/elite_ros_ws/build/eli_dashboard_interface/rosidl_adapter/eli_dashboard_interface:srv/Log.idl
-/home/robot/project/ls65_ros/ls65/elite_ros_ws/build/eli_dashboard_interface/rosidl_adapter/eli_dashboard_interface:srv/IsSaved.idl
-/home/robot/project/ls65_ros/ls65/elite_ros_ws/build/eli_dashboard_interface/rosidl_adapter/eli_dashboard_interface:srv/CustomRequest.idl
