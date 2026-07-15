@@ -1,7 +1,0 @@
-.vscode/**
-install/**
-build/**
-log/**
-__pycache__/
-*.pyc
-.codex

@@ -40,7 +40,8 @@ def launch_setup(context, *args, **kwargs):
 
     cs_control_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
-            [FindPackageShare("eli_cs_robot_simulation_gz"), "/launch", "/cs_sim_control.launch.py"]
+            [FindPackageShare("eli_cs_robot_simulation_gz"), "/launch", "/cs_sim_control.laun"
+            "ch.py"]
         ),
         launch_arguments={
             "cs_type": cs_type,
