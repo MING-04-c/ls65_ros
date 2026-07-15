@@ -155,7 +155,7 @@ def launch_setup(context, *args, **kwargs):
             "-string",
             robot_description_content,
             "-name",
-            "cs",
+            "ls65",
             "-allow_renaming",
             "true",
         ],
