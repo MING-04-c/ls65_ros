@@ -238,6 +238,14 @@ def launch_setup(context, *args, **kwargs):
 
     # Servo node for realtime control
     servo_yaml = load_yaml("eli_cs_robot_moveit_config", "config/cs_servo.yaml")
+    servo_yaml["command_out_type"] = "trajectory_msgs/JointTrajectory"
+    servo_yaml["robot_link_command_frame"] = "base_link"
+    servo_yaml["is_primary_planning_scene_monitor"] = False
+    servo_yaml["use_gazebo"] = change_controllers == "true"
+    if change_controllers == "true":
+        servo_yaml["command_out_topic"] = "/joint_trajectory_controller/joint_trajectory"
+    else:
+        servo_yaml["command_out_topic"] = "/scaled_joint_trajectory_controller/joint_trajectory"
     servo_params = {"moveit_servo": servo_yaml}
     servo_node = Node(
         package="moveit_servo",

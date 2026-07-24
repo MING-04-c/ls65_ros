@@ -13,6 +13,7 @@ def generate_launch_description():
     declared_arguments.append(
         DeclareLaunchArgument(
             "cs_type",
+            default_value="ls65",
             description="Type/series of used elite cs robot.",
             choices=["cs63", "cs66", "cs66a", "cs68", "cs612", "cs616", "cs618f", "cs620", "cs625", "cs520h", "ls65"],
         )

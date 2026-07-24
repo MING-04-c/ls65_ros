@@ -1,7 +1,12 @@
 # Author: Chen Shichao
 
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, OpaqueFunction
+from launch.actions import (
+    DeclareLaunchArgument,
+    GroupAction,
+    IncludeLaunchDescription,
+    OpaqueFunction,
+)
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
 from launch_ros.substitutions import FindPackageShare
@@ -21,6 +26,8 @@ def launch_setup(context, *args, **kwargs):
     moveit_joint_limits_file = LaunchConfiguration("moveit_joint_limits_file")
     moveit_controllers_file = LaunchConfiguration("moveit_controllers_file")
     prefix = LaunchConfiguration("prefix")
+    launch_rviz = LaunchConfiguration("launch_rviz")
+    launch_servo = LaunchConfiguration("launch_servo")
 
     cs_type_value = cs_type.perform(context)
     is_5_axis = cs_type_value.endswith("h")
@@ -70,14 +77,22 @@ def launch_setup(context, *args, **kwargs):
             "moveit_joint_limits_file": moveit_joint_limits_file_value,
             "moveit_controllers_file": moveit_controllers_file_value,
             "prefix": prefix,
+            # In simulation MoveIt must use joint_trajectory_controller instead
+            # of the real robot's scaled_joint_trajectory_controller.
+            "use_fake_hardware": "true",
             "use_sim_time": "true",
-            "launch_rviz": "true",
+            "launch_rviz": launch_rviz,
+            "launch_servo": launch_servo,
         }.items(),
     )
 
+    # Keep launch arguments from the two included launch files isolated.
+    # In particular, cs_control_launch intentionally receives launch_rviz=false.
+    # Without scoped groups that value can leak into cs_moveit_launch and prevent
+    # the MoveIt RViz node from being started.
     nodes_to_launch = [
-        cs_control_launch,
-        cs_moveit_launch,
+        GroupAction(actions=[cs_control_launch], scoped=True),
+        GroupAction(actions=[cs_moveit_launch], scoped=True),
     ]
 
     return nodes_to_launch
@@ -168,6 +183,20 @@ def generate_launch_description():
             description="Prefix of the joint names, useful for \
         multi-robot setup. If changed than also joint names in the controllers' configuration \
         have to be updated.",
+        )
+    )
+    declared_arguments.append(
+        DeclareLaunchArgument(
+            "launch_rviz",
+            default_value="true",
+            description="Launch RViz with the MoveIt configuration.",
+        )
+    )
+    declared_arguments.append(
+        DeclareLaunchArgument(
+            "launch_servo",
+            default_value="false",
+            description="Launch MoveIt Servo for realtime control.",
         )
     )
 
