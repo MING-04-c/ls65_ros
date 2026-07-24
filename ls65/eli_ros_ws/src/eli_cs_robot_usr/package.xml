@@ -13,6 +13,7 @@
   <depend>std_msgs</depend>
   <depend>std_srvs</depend>
   <depend>tf2</depend>
+  <depend>libx11-dev</depend>
   <depend>moveit_core</depend>
   <depend>moveit_msgs</depend>
   <depend>moveit_ros_planning_interface</depend>

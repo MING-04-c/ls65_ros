@@ -59,6 +59,12 @@ public:
     eef_step_ = parameter_or<double>("cartesian_eef_step", 0.01);
     jump_threshold_ = parameter_or<double>("cartesian_jump_threshold", 0.0);
     min_cartesian_fraction_ = parameter_or<double>("cartesian_min_fraction", 0.95);
+
+    // 在执行末端目标之前，是否先让机械臂运动到指定的关节初始位姿。
+    // 这个初始位姿使用弧度，六个数按照 MoveIt 规划组中的关节顺序排列。
+    initialize_before_execution_ = parameter_or<bool>("initialize_before_execution", true);
+    initial_joint_positions_ = parameter_or<std::vector<double>>(
+      "initial_joint_positions", {0.0, -1.57, 0.0, -1.57, 1.57, 0.0});
   }
 
   // 初始化 MoveGroupInterface、订阅者和服务。
@@ -113,6 +119,13 @@ public:
       get_logger(),
       "Ready: group='%s', end_effector='%s', default_frame='%s'",
       planning_group_.c_str(), end_effector_link_.c_str(), reference_frame_.c_str());
+
+    if (initialize_before_execution_) {
+      RCLCPP_INFO(
+        get_logger(),
+        "Each target batch will start from the configured %zu-joint initial pose",
+        initial_joint_positions_.size());
+    }
   }
 
 private:
@@ -137,6 +150,70 @@ private:
     return std::isfinite(p.x) && std::isfinite(p.y) && std::isfinite(p.z) &&
            std::isfinite(q.x) && std::isfinite(q.y) && std::isfinite(q.z) &&
            std::isfinite(q.w) && norm_squared > 1e-12;
+  }
+
+  bool move_to_initial_joint_pose(std_srvs::srv::Trigger::Response::SharedPtr response)
+  {
+    // 初始位姿在一次节点生命周期内只执行一次。也就是说，每次重新 launch
+    // 都会先回初始位，但同一次 launch 中后续收到的新目标不会反复回初始位。
+    if (!initialize_before_execution_ || initial_pose_executed_) {
+      return true;
+    }
+
+    // getJointNames() 返回 planning_group_ 中参与规划的活动关节。
+    // 初始角数量必须和它完全一致，避免把某个角度错误地发给另一个关节。
+    const auto joint_names = move_group_->getJointNames();
+    if (initial_joint_positions_.size() != joint_names.size()) {
+      response->success = false;
+      response->message =
+        "Parameter initial_joint_positions contains " +
+        std::to_string(initial_joint_positions_.size()) + " values, but planning group '" +
+        planning_group_ + "' has " + std::to_string(joint_names.size()) + " joints";
+      return false;
+    }
+
+    for (const double position : initial_joint_positions_) {
+      if (!std::isfinite(position)) {
+        response->success = false;
+        response->message = "Parameter initial_joint_positions contains NaN or infinity";
+        return false;
+      }
+    }
+
+    RCLCPP_INFO(get_logger(), "Planning motion to the configured initial joint pose");
+    for (std::size_t index = 0; index < joint_names.size(); ++index) {
+      RCLCPP_INFO(
+        get_logger(), "  %s = %.6f rad",
+        joint_names[index].c_str(), initial_joint_positions_[index]);
+    }
+
+    // 先把真实机械臂当前状态作为规划起点，再设置六个关节角目标。
+    // 这里执行的是关节空间规划，不需要把初始关节角转换为末端 Pose。
+    move_group_->setStartStateToCurrentState();
+    if (!move_group_->setJointValueTarget(initial_joint_positions_)) {
+      response->success = false;
+      response->message = "Initial joint pose is outside the robot joint limits";
+      return false;
+    }
+
+    moveit::planning_interface::MoveGroupInterface::Plan initial_plan;
+    const auto planning_result = move_group_->plan(initial_plan);
+    if (planning_result != moveit::core::MoveItErrorCode::SUCCESS) {
+      response->success = false;
+      response->message = "MoveIt failed to plan to the initial joint pose";
+      return false;
+    }
+
+    const auto execution_result = move_group_->execute(initial_plan);
+    if (execution_result != moveit::core::MoveItErrorCode::SUCCESS) {
+      response->success = false;
+      response->message = "Controller failed to execute the initial joint trajectory";
+      return false;
+    }
+
+    initial_pose_executed_ = true;
+    RCLCPP_INFO(get_logger(), "Initial joint pose reached; executing end-effector targets");
+    return true;
   }
 
   void execute_latest(std_srvs::srv::Trigger::Response::SharedPtr response)
@@ -190,6 +267,12 @@ private:
       pose.orientation.w /= norm;
     }
 
+    // 目标数据全部合法以后才回到初始关节位姿。这样即使收到错误的 Pose，
+    // 机械臂也不会发生任何不必要的运动。
+    if (!move_to_initial_joint_pose(response)) {
+      return;
+    }
+
     // 如果发布者填写了 header.frame_id，就使用发布者指定的坐标系；
     // 如果没有填写，则使用 reference_frame_ 参数，默认是 base_link。
     const std::string input_frame =
@@ -197,40 +280,15 @@ private:
     move_group_->setPoseReferenceFrame(input_frame);
     move_group_->setStartStateToCurrentState();
 
-    // 一个点：使用普通的 MoveIt 规划。
-    // 多个点：使用笛卡尔路径，让末端依次经过这些点。
-    if (target.poses.size() == 1) {
-      execute_single_pose(target.poses.front(), response);
-    } else {
-      execute_cartesian_path(target.poses, response);
-    }
-  }
-
-  void execute_single_pose(
-    const geometry_msgs::msg::Pose & pose,
-    std_srvs::srv::Trigger::Response::SharedPtr response)
-  {
-    // 设置末端目标。MoveIt 内部会进行逆运动学求解，并把末端目标转换成
-    // 一组满足关节限制、碰撞约束和运动学约束的关节轨迹。
-    move_group_->setPoseTarget(pose, end_effector_link_);
-    moveit::planning_interface::MoveGroupInterface::Plan plan;
-
-    // plan() 只负责规划，不会让机械臂运动。
-    // 规划结果保存在 plan.trajectory_ 中。
-    const auto planning_result = move_group_->plan(plan);
-    move_group_->clearPoseTargets();
-
-    if (planning_result != moveit::core::MoveItErrorCode::SUCCESS) {
-      response->success = false;
-      response->message = "MoveIt failed to plan to the target pose";
-      return;
-    }
-
-    // execute() 会把 plan 中的 JointTrajectory 发送给 MoveIt 配置的控制器。
-    const auto execution_result = move_group_->execute(plan);
-    response->success = execution_result == moveit::core::MoveItErrorCode::SUCCESS;
-    response->message = response->success ?
-      "Single-pose trajectory executed" : "Controller failed to execute trajectory";
+    // 无论是一个目标点还是多个轨迹点，都使用笛卡尔路径。
+    //
+    // 单点时，computeCartesianPath() 会从机械臂当前的末端位姿开始，
+    // 按 eef_step_ 设置的步长插值到目标位姿。这样末端看起来是直接移向
+    // 目标，不再让 OMPL 自由选择可能绕远的关节空间路径。
+    //
+    // 多点时，机械臂会按 waypoints 的顺序逐段做笛卡尔插值。
+    // 规划过程仍然会检查碰撞、关节限制和逆运动学是否有解。
+    execute_cartesian_path(target.poses, response);
   }
 
   void execute_cartesian_path(
@@ -297,6 +355,9 @@ private:
   double eef_step_;
   double jump_threshold_;
   double min_cartesian_fraction_;
+  bool initialize_before_execution_;
+  std::vector<double> initial_joint_positions_;
+  bool initial_pose_executed_{false};
 
   // unique_ptr 表示 MoveGroupInterface 由本节点独占管理，节点析构时自动释放。
   std::unique_ptr<moveit::planning_interface::MoveGroupInterface> move_group_;

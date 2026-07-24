@@ -1,0 +1,13 @@
+# 机械臂初始关节位姿。
+#
+# pose_execution_system.launch.py 会把这个文件只加载给
+# moveit_pose_executor，不会把关节角当作末端 XYZ/RPY 发布。
+moveit_pose_executor:
+  ros__parameters:
+    # true：每次重新 launch 后，第一次执行目标前先回初始位。
+    initialize_before_execution: true
+
+    # 六轴关节角，单位是弧度。顺序是：
+    # shoulder_pan_joint, shoulder_lift_joint, elbow_joint,
+    # wrist_1_joint, wrist_2_joint, wrist_3_joint
+    initial_joint_positions: [0.0, -1.57, 0.0, -1.57, 1.57, 0.0]

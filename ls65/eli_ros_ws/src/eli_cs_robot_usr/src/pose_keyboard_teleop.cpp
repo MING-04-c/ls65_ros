@@ -9,10 +9,13 @@
 #include <X11/Xlib.h>
 #include <X11/keysym.h>
 
+// Xlib defines None as a macro, while rclcpp uses None as an enum member.
+#undef None
+
 #include <atomic>
 #include <chrono>
 #include <cstring>
-#include <iostream>
+#include <iterator>
 #include <memory>
 #include <mutex>
 #include <set>
@@ -71,6 +74,10 @@ public:
 
     // Servo 节点启动后默认没有开始计算，自动调用 start_servo 服务。
     start_timer_ = create_wall_timer(500ms, [this]() {try_start_servo();});
+
+    // 定期显示键盘命令话题是否已有 Servo 订阅者。如果这里一直是 0，
+    // 说明问题不在键盘事件，而是 Servo 节点没有启动或话题名不匹配。
+    connection_timer_ = create_wall_timer(2s, [this]() {report_connections();});
 
     RCLCPP_INFO(
       get_logger(), "Keyboard window ready: linear=%.3f m/s, angular=%.3f rad/s",
@@ -309,6 +316,25 @@ private:
       });
   }
 
+  void report_connections()
+  {
+    const auto subscriber_count = twist_publisher_->get_subscription_count();
+    if (subscriber_count == 0) {
+      RCLCPP_WARN_THROTTLE(
+        get_logger(), *get_clock(), 5000,
+        "No subscriber on '%s'; MoveIt Servo cannot receive keyboard commands",
+        twist_topic_.c_str());
+      return;
+    }
+
+    if (!connection_reported_) {
+      connection_reported_ = true;
+      RCLCPP_INFO(
+        get_logger(), "Servo command connection ready: '%s' has %zu subscriber(s)",
+        twist_topic_.c_str(), subscriber_count);
+    }
+  }
+
   void report_servo_status(int8_t status)
   {
     if (status == last_servo_status_) {
@@ -349,6 +375,7 @@ private:
   rclcpp::Subscription<std_msgs::msg::Int8>::SharedPtr servo_status_subscription_;
   rclcpp::TimerBase::SharedPtr publish_timer_;
   rclcpp::TimerBase::SharedPtr start_timer_;
+  rclcpp::TimerBase::SharedPtr connection_timer_;
 
   std::mutex command_mutex_;
   std::set<char> pressed_keys_;
@@ -356,6 +383,7 @@ private:
   std::atomic_bool servo_started_{false};
   std::atomic_bool quit_requested_{false};
   bool start_request_pending_{false};
+  bool connection_reported_{false};
   int8_t last_servo_status_{-127};
 };
 

@@ -12,6 +12,7 @@ find_package(geometry_msgs REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(std_srvs REQUIRED)
 find_package(tf2 REQUIRED)
+find_package(X11 REQUIRED)
 find_package(moveit_core REQUIRED)
 find_package(moveit_msgs REQUIRED)
 find_package(moveit_ros_planning_interface REQUIRED)
@@ -47,6 +48,7 @@ ament_target_dependencies(
   std_msgs
   std_srvs
 )
+target_link_libraries(pose_keyboard_teleop X11::X11)
 
 install(TARGETS
   moveit_pose_executor

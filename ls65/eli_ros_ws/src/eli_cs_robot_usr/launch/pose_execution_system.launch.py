@@ -18,12 +18,8 @@ def generate_launch_description():
     execute_after_input = LaunchConfiguration("execute_after_input")
     execute_after_yaml = LaunchConfiguration("execute_after_yaml")
     angles_in_degrees = LaunchConfiguration("angles_in_degrees")
-    start_keyboard_teleop = LaunchConfiguration("start_keyboard_teleop")
-    keyboard_linear_speed = LaunchConfiguration("keyboard_linear_speed")
-    keyboard_angular_speed = LaunchConfiguration("keyboard_angular_speed")
-    keyboard_key_timeout = LaunchConfiguration("keyboard_key_timeout")
-    keyboard_debounce_ms = LaunchConfiguration("keyboard_debounce_ms")
     config_file = LaunchConfiguration("config_file")
+    initial_config_file = LaunchConfiguration("initial_config_file")
 
     simulation_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
@@ -37,7 +33,7 @@ def generate_launch_description():
         launch_arguments={
             "cs_type": cs_type,
             "launch_rviz": launch_rviz,
-            "launch_servo": start_keyboard_teleop,
+            "launch_servo": "false",
         }.items(),
     )
 
@@ -57,7 +53,7 @@ def generate_launch_description():
             "use_fake_hardware": "false",
             "use_sim_time": "false",
             "launch_rviz": launch_rviz,
-            "launch_servo": start_keyboard_teleop,
+            "launch_servo": "false",
         }.items(),
     )
 
@@ -74,6 +70,8 @@ def generate_launch_description():
                 "config",
                 "kinematics.yaml",
             ]),
+            # Initial joint configuration is kept separate from Cartesian targets.
+            initial_config_file,
             {
                 "planning_group": "cs_manipulator",
                 "end_effector_link": "tool0",
@@ -108,29 +106,15 @@ def generate_launch_description():
         }.items(),
     )
 
-    keyboard_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            PathJoinSubstitution([
-                FindPackageShare("eli_cs_robot_usr"),
-                "launch",
-                "pose_keyboard_teleop.launch.py",
-            ])
-        ),
-        condition=IfCondition(start_keyboard_teleop),
-        launch_arguments={
-            "use_sim_time": use_simulation,
-            "command_frame": "base_link",
-            "linear_speed": keyboard_linear_speed,
-            "angular_speed": keyboard_angular_speed,
-            "key_timeout": keyboard_key_timeout,
-            "debounce_ms": keyboard_debounce_ms,
-        }.items(),
-    )
-
     default_config = PathJoinSubstitution([
         FindPackageShare("eli_cs_robot_usr"),
         "config",
         "cartesian_path.yaml",
+    ])
+    default_initial_config = PathJoinSubstitution([
+        FindPackageShare("eli_cs_robot_usr"),
+        "config",
+        "initial_joint_pose.yaml",
     ])
 
     return LaunchDescription([
@@ -183,32 +167,12 @@ def generate_launch_description():
             description="Pose target YAML used when start_publisher is true",
         ),
         DeclareLaunchArgument(
-            "start_keyboard_teleop",
-            default_value="false",
-            description="Open a terminal for end-effector keyboard jog control",
-        ),
-        DeclareLaunchArgument(
-            "keyboard_linear_speed",
-            default_value="0.05",
-            description="Keyboard Cartesian linear speed in metres per second",
-        ),
-        DeclareLaunchArgument(
-            "keyboard_angular_speed",
-            default_value="0.20",
-            description="Keyboard Cartesian angular speed in radians per second",
-        ),
-        DeclareLaunchArgument(
-            "keyboard_key_timeout",
-            default_value="0.15",
-            description="Stop after this many seconds without a key event",
-        ),
-        DeclareLaunchArgument(
-            "keyboard_debounce_ms",
-            default_value="20",
-            description="Ignore identical key events inside this interval",
+            "initial_config_file",
+            default_value=default_initial_config,
+            description="YAML containing the initial joint pose",
         ),
         simulation_launch,
         real_moveit_launch,
         executor_node,
-        TimerAction(period=5.0, actions=[publisher_launch, keyboard_launch]),
+        TimerAction(period=5.0, actions=[publisher_launch]),
     ])
