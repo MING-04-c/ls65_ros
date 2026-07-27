@@ -8,6 +8,7 @@
 // 本节点不直接操作 eli_cs_controllers，而是调用 MoveGroupInterface。
 // MoveIt 会根据 controllers.yaml 中的配置，把轨迹发送到
 // scaled_joint_trajectory_controller 的 FollowJointTrajectory action。
+#include <algorithm>
 #include <atomic>
 #include <cmath>
 #include <memory>
@@ -52,6 +53,10 @@ public:
     // 普通规划最多允许搜索 5 秒。
     planning_time_ = parameter_or<double>("planning_time", 5.0);
 
+    // MoveIt 等待完整关节状态的最长时间。真机启动时 DDS 发现和
+    // /joint_states 订阅建立可能需要一小段时间，因此不使用过短的等待时间。
+    current_state_wait_sec_ = parameter_or<double>("current_state_wait_sec", 5.0);
+
     // 多个位姿时使用笛卡尔路径：
     // eef_step 是末端插值步长，单位是米；
     // jump_threshold 用于限制关节角突然跳变，0.0 表示关闭这个检查；
@@ -63,6 +68,8 @@ public:
     // 在执行末端目标之前，是否先让机械臂运动到指定的关节初始位姿。
     // 这个初始位姿使用弧度，六个数按照 MoveIt 规划组中的关节顺序排列。
     initialize_before_execution_ = parameter_or<bool>("initialize_before_execution", true);
+    initialize_on_startup_ = parameter_or<bool>("initialize_on_startup", true);
+    initial_joint_tolerance_ = parameter_or<double>("initial_joint_tolerance", 0.01);
     initial_joint_positions_ = parameter_or<std::vector<double>>(
       "initial_joint_positions", {0.0, -1.57, 0.0, -1.57, 1.57, 0.0});
   }
@@ -85,6 +92,17 @@ public:
     move_group_->setMaxAccelerationScalingFactor(acceleration_scaling_);
     move_group_->setPlanningTime(planning_time_);
 
+    // 提前创建并启动 CurrentStateMonitor，使它在用户输入目标之前就开始接收
+    // /joint_states。若等到笛卡尔轨迹已经计算完成才第一次调用
+    // getCurrentState()，第一次读取可能因 DDS 订阅尚未准备好而超时。
+    if (!move_group_->startStateMonitor(current_state_wait_sec_)) {
+      RCLCPP_WARN(
+        get_logger(),
+        "MoveIt did not receive a complete current state within %.1f seconds; "
+        "Cartesian execution will retry when a target is received",
+        current_state_wait_sec_);
+    }
+
     // 订阅末端位姿数组。
     // "~" 表示使用当前节点名称作为前缀，因此最终 topic 是：
     // /moveit_pose_executor/target_poses
@@ -104,6 +122,23 @@ public:
           latest_target_.poses.size(), latest_target_.header.frame_id.c_str());
       });
 
+    // 必须先创建目标订阅，再同步执行启动初始轨迹。真机回初始位可能需要数秒，
+    // 如果订阅在这段运动结束后才创建，期间发布的 PoseArray 不会被 ROS 2 保存，
+    // 随后的 execute_latest 服务就只能得到 "No target poses received"。
+    //
+    // 此处只提前创建订阅，不提前开放执行服务：目标可以先进入 DDS 接收队列，
+    // 但新的轨迹必须等初始轨迹结束后才能执行，避免两条轨迹同时控制机械臂。
+    if (initialize_before_execution_ && initialize_on_startup_) {
+      auto response = std::make_shared<std_srvs::srv::Trigger::Response>();
+      RCLCPP_INFO(get_logger(), "Startup initialization is enabled");
+      if (!move_to_initial_joint_pose(response)) {
+        RCLCPP_ERROR(
+          get_logger(), "Startup initialization failed: %s", response->message.c_str());
+        RCLCPP_ERROR(
+          get_logger(), "The executor will retry the initial pose before the first target");
+      }
+    }
+
     // 创建执行服务。
     // 调用这个服务时，节点会取出最近收到的 PoseArray 并开始规划执行。
     // 最终服务名是：/moveit_pose_executor/execute_latest
@@ -120,10 +155,10 @@ public:
       "Ready: group='%s', end_effector='%s', default_frame='%s'",
       planning_group_.c_str(), end_effector_link_.c_str(), reference_frame_.c_str());
 
-    if (initialize_before_execution_) {
+    if (initialize_before_execution_ && !initial_pose_executed_) {
       RCLCPP_INFO(
         get_logger(),
-        "Each target batch will start from the configured %zu-joint initial pose",
+        "The first target will start from the configured %zu-joint initial pose",
         initial_joint_positions_.size());
     }
   }
@@ -178,6 +213,38 @@ private:
         response->message = "Parameter initial_joint_positions contains NaN or infinity";
         return false;
       }
+    }
+
+    // 如果机械臂已经位于初始关节位，就不要向控制器发送一条几乎没有位移的
+    // 退化轨迹。部分真机控制器会直接拒绝这种轨迹。getCurrentJointValues()
+    // 返回的顺序与 getJointNames() 相同，因此可以逐轴比较。
+    const auto current_joint_positions = move_group_->getCurrentJointValues();
+    if (current_joint_positions.size() == initial_joint_positions_.size()) {
+      bool already_at_initial_pose = true;
+      double maximum_error = 0.0;
+      for (std::size_t index = 0; index < initial_joint_positions_.size(); ++index) {
+        const double error = std::abs(
+          current_joint_positions[index] - initial_joint_positions_[index]);
+        maximum_error = std::max(maximum_error, error);
+        if (error > initial_joint_tolerance_) {
+          already_at_initial_pose = false;
+        }
+      }
+
+      if (already_at_initial_pose) {
+        initial_pose_executed_ = true;
+        response->success = true;
+        response->message = "Robot is already at the configured initial joint pose";
+        RCLCPP_INFO(
+          get_logger(),
+          "Robot is already at the initial joint pose (maximum error %.6f rad)",
+          maximum_error);
+        return true;
+      }
+    } else {
+      RCLCPP_WARN(
+        get_logger(),
+        "Could not compare the current and initial joint poses; planning will continue");
     }
 
     RCLCPP_INFO(get_logger(), "Planning motion to the configured initial joint pose");
@@ -313,19 +380,29 @@ private:
       return;
     }
 
-    // computeCartesianPath 得到的轨迹可能没有完整的时间信息。
-    // 读取当前关节状态，作为轨迹时间参数化的起点。
-    const auto current_state = move_group_->getCurrentState(2.0);
-    if (!current_state) {
+    // computeCartesianPath 得到的轨迹可能没有完整的时间信息，但轨迹消息中
+    // 已经包含用于规划的起始关节位置。真机上 MoveGroupInterface 自己的
+    // CurrentStateMonitor 偶尔无法在这里再次取得状态，即使 /joint_states
+    // 正在稳定发布；因此直接使用规划结果的第一个轨迹点构造起始状态。
+    const auto & joint_trajectory = trajectory_message.joint_trajectory;
+    if (joint_trajectory.joint_names.empty() || joint_trajectory.points.empty() ||
+      joint_trajectory.points.front().positions.size() != joint_trajectory.joint_names.size())
+    {
       response->success = false;
-      response->message = "Could not read current robot state for trajectory timing";
+      response->message = "Cartesian trajectory does not contain a valid start state";
       return;
     }
+
+    moveit::core::RobotState trajectory_start_state(move_group_->getRobotModel());
+    trajectory_start_state.setToDefaultValues();
+    trajectory_start_state.setVariablePositions(
+      joint_trajectory.joint_names, joint_trajectory.points.front().positions);
+    trajectory_start_state.update();
 
     // 把 ROS 消息转换成 MoveIt 的 RobotTrajectory 对象，方便进行时间参数化。
     robot_trajectory::RobotTrajectory robot_trajectory(
       move_group_->getRobotModel(), planning_group_);
-    robot_trajectory.setRobotTrajectoryMsg(*current_state, trajectory_message);
+    robot_trajectory.setRobotTrajectoryMsg(trajectory_start_state, trajectory_message);
     // 根据速度和加速度限制，为每个轨迹点计算 time_from_start、速度和加速度。
     trajectory_processing::IterativeParabolicTimeParameterization time_parameterization;
     if (!time_parameterization.computeTimeStamps(
@@ -352,10 +429,13 @@ private:
   double velocity_scaling_;
   double acceleration_scaling_;
   double planning_time_;
+  double current_state_wait_sec_;
   double eef_step_;
   double jump_threshold_;
   double min_cartesian_fraction_;
   bool initialize_before_execution_;
+  bool initialize_on_startup_;
+  double initial_joint_tolerance_;
   std::vector<double> initial_joint_positions_;
   bool initial_pose_executed_{false};
 

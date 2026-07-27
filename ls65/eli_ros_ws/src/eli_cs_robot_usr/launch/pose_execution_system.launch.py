@@ -18,8 +18,28 @@ def generate_launch_description():
     execute_after_input = LaunchConfiguration("execute_after_input")
     execute_after_yaml = LaunchConfiguration("execute_after_yaml")
     angles_in_degrees = LaunchConfiguration("angles_in_degrees")
+    config_package = LaunchConfiguration("config_package")
     config_file = LaunchConfiguration("config_file")
+    initial_config_package = LaunchConfiguration("initial_config_package")
     initial_config_file = LaunchConfiguration("initial_config_file")
+    velocity_scaling = LaunchConfiguration("velocity_scaling")
+    acceleration_scaling = LaunchConfiguration("acceleration_scaling")
+
+    # config_file 使用 ROS 包 share/config 目录下的文件名。例如：
+    #   config_package:=eli_cs_robot_usr
+    #   config_file:=cartesian_path.yaml
+    # 如果 config_file 以 / 开头，PathJoinSubstitution 会保留该绝对路径，
+    # 因此之前使用绝对路径的启动命令仍然兼容。
+    resolved_config_file = PathJoinSubstitution([
+        FindPackageShare(config_package),
+        "config",
+        config_file,
+    ])
+    resolved_initial_config_file = PathJoinSubstitution([
+        FindPackageShare(initial_config_package),
+        "config",
+        initial_config_file,
+    ])
 
     simulation_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
@@ -71,13 +91,15 @@ def generate_launch_description():
                 "kinematics.yaml",
             ]),
             # Initial joint configuration is kept separate from Cartesian targets.
-            initial_config_file,
+            resolved_initial_config_file,
             {
                 "planning_group": "cs_manipulator",
                 "end_effector_link": "tool0",
                 "reference_frame": "base_link",
-                "velocity_scaling": 0.2,
-                "acceleration_scaling": 0.2,
+                # 这是 MoveIt 生成轨迹时使用的名义限制。真机控制器还会在
+                # 执行过程中继续乘以示教器的实时速度缩放值。
+                "velocity_scaling": velocity_scaling,
+                "acceleration_scaling": acceleration_scaling,
                 "planning_time": 5.0,
                 "cartesian_eef_step": 0.01,
                 "cartesian_jump_threshold": 0.0,
@@ -98,24 +120,13 @@ def generate_launch_description():
         condition=IfCondition(start_publisher),
         launch_arguments={
             "use_sim_time": use_simulation,
-            "config_file": config_file,
+            "config_file": resolved_config_file,
             "interactive_input": interactive_input,
             "execute_after_input": execute_after_input,
             "execute_after_yaml": execute_after_yaml,
             "angles_in_degrees": angles_in_degrees,
         }.items(),
     )
-
-    default_config = PathJoinSubstitution([
-        FindPackageShare("eli_cs_robot_usr"),
-        "config",
-        "cartesian_path.yaml",
-    ])
-    default_initial_config = PathJoinSubstitution([
-        FindPackageShare("eli_cs_robot_usr"),
-        "config",
-        "initial_joint_pose.yaml",
-    ])
 
     return LaunchDescription([
         DeclareLaunchArgument(
@@ -153,7 +164,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             "execute_after_yaml",
-            default_value="false",
+            default_value="true",
             description="Automatically execute the YAML target after publishing it",
         ),
         DeclareLaunchArgument(
@@ -162,14 +173,38 @@ def generate_launch_description():
             description="Interpret interactive roll pitch yaw as degrees",
         ),
         DeclareLaunchArgument(
+            "config_package",
+            default_value="eli_cs_robot_usr",
+            description="ROS package containing the target pose YAML",
+        ),
+        DeclareLaunchArgument(
             "config_file",
-            default_value=default_config,
-            description="Pose target YAML used when start_publisher is true",
+            default_value="cartesian_path.yaml",
+            description=(
+                "File under config_package/config, or an absolute path"
+            ),
+        ),
+        DeclareLaunchArgument(
+            "initial_config_package",
+            default_value="eli_cs_robot_usr",
+            description="ROS package containing the initial joint pose YAML",
         ),
         DeclareLaunchArgument(
             "initial_config_file",
-            default_value=default_initial_config,
-            description="YAML containing the initial joint pose",
+            default_value="initial_joint_pose.yaml",
+            description=(
+                "File under initial_config_package/config, or an absolute path"
+            ),
+        ),
+        DeclareLaunchArgument(
+            "velocity_scaling",
+            default_value="1.0",
+            description="MoveIt nominal velocity scaling in the range (0, 1]",
+        ),
+        DeclareLaunchArgument(
+            "acceleration_scaling",
+            default_value="1.0",
+            description="MoveIt nominal acceleration scaling in the range (0, 1]",
         ),
         simulation_launch,
         real_moveit_launch,

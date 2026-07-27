@@ -173,12 +173,31 @@ def launch_setup(context, *args, **kwargs):
         "moveit_controller_manager": "moveit_simple_controller_manager/MoveItSimpleControllerManager",
     }
 
+    # MoveIt 根据规划轨迹中的 time_from_start 估算执行超时时间。真机使用
+    # scaled_joint_trajectory_controller，示教器上的速度缩放会让实际运动时间
+    # 变长，例如 50% 速度大约需要 2 倍时间。这里仅放宽 MoveIt 的等待时限，
+    # 不会改变或绕过示教器速度缩放，控制器仍然读取真机的 speed_scaling。
+    if change_controllers == "true":
+        execution_duration_monitoring = True
+        execution_duration_scaling = 1.2
+        goal_duration_margin = 0.5
+    else:
+        # 真机的控制器会在执行过程中持续读取示教器速度缩放。缩放值可能在
+        # 轨迹执行期间变化，MoveIt 无法提前准确计算实际结束时间，因此让
+        # FollowJointTrajectory action 的结果决定何时完成，不再按名义时长取消。
+        execution_duration_monitoring = False
+        execution_duration_scaling = 5.0
+        goal_duration_margin = 5.0
+
     trajectory_execution = {
         "moveit_manage_controllers": False,
-        # 将 1.2 改为 2.0，给轨迹执行留出更多容错时间
-        "trajectory_execution.allowed_execution_duration_scaling": 1.2, 
-        # 将 0.5 改为 5.0，这能有效解决“动一下就停”的问题
-        "trajectory_execution.allowed_goal_duration_margin": 0.5,        
+        "trajectory_execution.execution_duration_monitoring": (
+            execution_duration_monitoring
+        ),
+        "trajectory_execution.allowed_execution_duration_scaling": (
+            execution_duration_scaling
+        ),
+        "trajectory_execution.allowed_goal_duration_margin": goal_duration_margin,
         "trajectory_execution.allowed_start_tolerance": 0.1,
     }
 

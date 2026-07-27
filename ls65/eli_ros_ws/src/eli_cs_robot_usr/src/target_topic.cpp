@@ -16,6 +16,7 @@
 #include <string>
 #include <sstream>
 #include <thread>
+#include <utility>
 #include <vector>
 
 #include <geometry_msgs/msg/pose_array.hpp>
@@ -52,6 +53,12 @@ public:
     interactive_mode_ = declare_parameter<bool>("interactive_mode", false);
     execute_after_input_ = declare_parameter<bool>("execute_after_input", true);
     execute_after_yaml_ = declare_parameter<bool>("execute_after_yaml", false);
+    // 真机启动时，执行器会先同步运动到初始关节位，执行服务要等这段运动
+    // 完成后才会出现。发布器因此不能只等 1 秒；默认最多等待 30 秒。
+    service_wait_timeout_sec_ = declare_parameter<double>("service_wait_timeout_sec", 30.0);
+    // 服务被发现后再发布目标，并留一点时间让执行器的订阅回调保存 PoseArray。
+    // 这是 DDS 消息传递等待时间，不是机械臂运动延迟。
+    target_delivery_delay_sec_ = declare_parameter<double>("target_delivery_delay_sec", 0.1);
 
     // 将一维数字数组转换成 PoseArray 中的多个 Pose。
     parse_poses(values);
@@ -83,9 +90,10 @@ public:
       const auto delay = std::chrono::duration<double>(std::max(0.01, auto_publish_delay));
       auto_publish_timer_ = create_wall_timer(
         delay, [this]() {
-          publish_targets();
           if (execute_after_yaml_) {
             execute_latest_target();
+          } else {
+            publish_targets();
           }
           auto_publish_timer_->cancel();
         });
@@ -98,7 +106,8 @@ public:
     if (interactive_mode_) {
       RCLCPP_INFO(
         get_logger(),
-        "Interactive mode: enter 'x y z roll pitch yaw', or enter 'q' to quit");
+        "Interactive mode: enter one or more groups of "
+        "'x y z roll pitch yaw' on one line, or enter 'q' to quit");
     }
   }
 
@@ -193,26 +202,39 @@ private:
         values.push_back(value);
       }
 
-      std::string extra;
-      if (values.size() != 6 || (input >> extra)) {
+      // 每个位姿正好需要 6 个数，但一行可以包含多组位姿。例如 12 个数
+      // 表示两个连续目标点，18 个数表示三个连续目标点。
+      // 如果遇到字母等非数字内容，input 会在到达行尾前解析失败，此时
+      // !input.eof() 为 true，也应当拒绝这次输入。
+      constexpr std::size_t values_per_pose = 6;
+      if (values.empty() || values.size() % values_per_pose != 0 || !input.eof()) {
         RCLCPP_ERROR(
-          get_logger(), "Expected exactly 6 numbers: x y z roll pitch yaw");
+          get_logger(),
+          "Expected 6*N numbers: x y z roll pitch yaw "
+          "[x y z roll pitch yaw ...]");
         continue;
       }
 
       try {
-        const auto pose = make_pose(
-          values[0], values[1], values[2], values[3], values[4], values[5]);
+        // 先在局部数组中完成全部 RPY 到四元数的转换。只有所有目标都合法时，
+        // 才替换 target_，避免后面某一组数据错误却留下不完整的轨迹。
+        std::vector<geometry_msgs::msg::Pose> poses;
+        poses.reserve(values.size() / values_per_pose);
+        for (std::size_t offset = 0; offset < values.size(); offset += values_per_pose) {
+          poses.push_back(
+            make_pose(
+              values[offset], values[offset + 1], values[offset + 2],
+              values[offset + 3], values[offset + 4], values[offset + 5]));
+        }
 
         {
           std::lock_guard<std::mutex> lock(target_mutex_);
-          target_.poses.clear();
-          target_.poses.push_back(pose);
+          target_.poses = std::move(poses);
         }
-        publish_targets();
-
         if (execute_after_input_) {
           execute_latest_target();
+        } else {
+          publish_targets();
         }
       } catch (const std::exception & error) {
         RCLCPP_ERROR(get_logger(), "Invalid pose: %s", error.what());
@@ -222,11 +244,27 @@ private:
 
   void execute_latest_target()
   {
-    if (!execute_client_->wait_for_service(std::chrono::seconds(1))) {
+    // execute_latest 服务只有在执行器完成启动初始化后才创建。先等待服务，
+    // 可以保证 YAML 目标不会在机械臂回初始位的过程中被过早发布并丢失。
+    const auto wait_timeout = std::chrono::duration<double>(
+      std::max(0.0, service_wait_timeout_sec_));
+    if (!execute_client_->wait_for_service(wait_timeout)) {
       RCLCPP_ERROR(
-        get_logger(), "Service /moveit_pose_executor/execute_latest is not available");
+        get_logger(),
+        "Service /moveit_pose_executor/execute_latest was not available within %.1f seconds",
+        service_wait_timeout_sec_);
       return;
     }
+
+    // 服务就绪后再发送最新目标。这样无论初始运动实际用了 2 秒还是 20 秒，
+    // 发布时 moveit_pose_executor 都已经完成初始化并保持目标订阅有效。
+    publish_targets();
+
+    // publish() 是异步发送。短暂等待可确保订阅回调先把 PoseArray 写入
+    // latest_target_，然后 Trigger 服务再读取它。默认 0.1 秒对本机 DDS 足够。
+    const auto delivery_delay = std::chrono::duration<double>(
+      std::max(0.0, target_delivery_delay_sec_));
+    std::this_thread::sleep_for(delivery_delay);
 
     auto request = std::make_shared<std_srvs::srv::Trigger::Request>();
     execute_client_->async_send_request(
@@ -264,6 +302,8 @@ private:
   bool interactive_mode_;
   bool execute_after_input_;
   bool execute_after_yaml_;
+  double service_wait_timeout_sec_;
+  double target_delivery_delay_sec_;
   std::mutex target_mutex_;
 
   // ROS 2 发布者、服务端和定时器对象。

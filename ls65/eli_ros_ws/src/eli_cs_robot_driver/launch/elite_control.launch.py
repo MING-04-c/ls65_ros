@@ -106,7 +106,10 @@ def launch_setup(context, *args, **kwargs):
             safety_k_position,
             " ",
             "name:=",
-            cs_type,
+            # MoveIt 的 URDF 和 SRDF 都使用机器人名称 "cs"。真机驱动也必须
+            # 使用相同名称，否则订阅 /robot_description 的节点可能把名称为
+            # ls65 的 URDF 与名称为 cs 的 SRDF 混合起来，导致语义模型不匹配。
+            "cs",
             " ",
             "script_filename:=",
             script_filename,
