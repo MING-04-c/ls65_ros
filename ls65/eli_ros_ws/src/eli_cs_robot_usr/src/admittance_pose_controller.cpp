@@ -33,8 +33,10 @@
 #include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/msg/joint_state.hpp>
 #include <std_msgs/msg/float64_multi_array.hpp>
+#include <std_msgs/msg/float64.hpp>
 #include <std_srvs/srv/set_bool.hpp>
 #include <std_srvs/srv/trigger.hpp>
+#include <trajectory_msgs/msg/joint_trajectory.hpp>
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2/LinearMath/Vector3.h>
 #include <tf2_ros/buffer.h>
@@ -48,6 +50,8 @@ public:
     tf_buffer_(get_clock()),
     tf_listener_(tf_buffer_)
   {
+    // 导纳计算统一在 base_frame 中进行。末端当前位姿由 TF 查询，目标位姿
+    // 的 header.frame_id 也必须为空或等于这个坐标系。
     base_frame_ = declare_parameter<std::string>("base_frame", "base_link");
     end_effector_frame_ = declare_parameter<std::string>("end_effector_frame", "tool0");
 
@@ -57,15 +61,29 @@ public:
     wrench_transform_frame_ = declare_parameter<std::string>(
       "wrench_transform_frame", "wrist_3_link");
 
+    // position 模式用于仿真，发布 Float64MultiArray；trajectory 模式用于真机，
+    // 发布 JointTrajectory。两种模式不能同时向同一个话题发布。
     joint_command_topic_ = declare_parameter<std::string>(
       "joint_command_topic", "/forward_position_controller/commands");
+    output_mode_ = declare_parameter<std::string>("output_mode", "position");
+    // trajectory 模式下，每个新 IK 目标点的名义到达时间，单位秒。
+    // 它是轨迹消息的 time_from_start，不是导纳方程的积分周期。
+    trajectory_duration_ = declare_parameter<double>("trajectory_duration", 0.2);
+    speed_scaling_topic_ = declare_parameter<std::string>(
+      "speed_scaling_topic", "/speed_scaling_state_broadcaster/speed_scaling");
+    require_speed_scaling_ = declare_parameter<bool>("require_speed_scaling", false);
     wrench_topic_ = declare_parameter<std::string>(
       "wrench_topic", "/force_torque_sensor_broadcaster/ft_data");
 
+    // 导纳离散积分使用的控制频率。实际 control_step() 由力传感器回调触发。
     control_rate_ = declare_parameter<double>("control_rate", 100.0);
+    // 位置和姿态误差小于阈值时，当前点才会被视为到达。
     position_tolerance_ = declare_parameter<double>("position_tolerance", 0.005);
     orientation_tolerance_ = declare_parameter<double>("orientation_tolerance", 0.03);
 
+    // 导纳模型参数，三个数组的顺序均为 [x, y, z]：
+    // M 为虚拟质量，D 为虚拟阻尼，K 为虚拟刚度。
+    // 它们决定受到同样外力时，末端偏移多少、启动多快以及是否容易振荡。
     mass_ = read_xyz_parameter("mass", {2.0, 2.0, 2.0});
     damping_ = read_xyz_parameter("damping", {40.0, 40.0, 40.0});
     stiffness_ = read_xyz_parameter("stiffness", {250.0, 250.0, 250.0});
@@ -84,6 +102,8 @@ public:
     compliant_axis_[1] = compliant_axes.find('y') != std::string::npos;
     compliant_axis_[2] = compliant_axes.find('z') != std::string::npos;
 
+    // 一阶低通滤波系数 alpha：new = old + alpha * (sample - old)。
+    // alpha 越小越平滑但延迟越大，alpha 越大响应越快但噪声更明显。
     filter_alpha_ = std::clamp(
       declare_parameter<double>("force_filter_alpha", 0.15), 0.0, 1.0);
     bias_sample_count_ = static_cast<std::size_t>(std::max<std::int64_t>(
@@ -91,8 +111,19 @@ public:
 
     external_wrench_publisher_ = create_publisher<geometry_msgs::msg::WrenchStamped>(
       "~/external_wrench", rclcpp::QoS(10).best_effort());
-    joint_command_publisher_ = create_publisher<std_msgs::msg::Float64MultiArray>(
-      joint_command_topic_, rclcpp::QoS(10).reliable());
+    if (output_mode_ != "position" && output_mode_ != "trajectory") {
+      throw std::runtime_error("output_mode must be 'position' or 'trajectory'");
+    }
+    if (trajectory_duration_ <= 0.0) {
+      throw std::runtime_error("trajectory_duration must be greater than zero");
+    }
+    if (output_mode_ == "position") {
+      joint_command_publisher_ = create_publisher<std_msgs::msg::Float64MultiArray>(
+        joint_command_topic_, rclcpp::QoS(10).reliable());
+    } else {
+      trajectory_publisher_ = create_publisher<trajectory_msgs::msg::JointTrajectory>(
+        joint_command_topic_, rclcpp::QoS(10).reliable());
+    }
 
     // 不在控制回调里调用 MoveGroupInterface::getCurrentState()。那个函数会
     // 阻塞等待 /joint_states；本节点使用单线程 spin 时，阻塞期间恰好无法
@@ -102,6 +133,16 @@ public:
       "/joint_states", rclcpp::SensorDataQoS(),
       std::bind(
         &AdmittancePoseController::joint_state_callback, this, std::placeholders::_1));
+
+    // 真机控制器自己会读取这个缩放值来推进轨迹。节点同时缓存它，用于
+    // 日志和导纳偏移速度保护；不会把它硬编码成某个固定百分比。
+    speed_scaling_subscription_ = create_subscription<std_msgs::msg::Float64>(
+      speed_scaling_topic_, rclcpp::QoS(10).best_effort(),
+      [this](const std_msgs::msg::Float64::ConstSharedPtr message) {
+        std::lock_guard<std::mutex> lock(speed_scaling_mutex_);
+        speed_scaling_percent_ = std::clamp(message->data, 0.0, 100.0);
+        have_speed_scaling_ = true;
+      });
 
     wrench_subscription_ = create_subscription<geometry_msgs::msg::WrenchStamped>(
       wrench_topic_, rclcpp::SensorDataQoS(),
@@ -170,6 +211,9 @@ public:
     }
     RCLCPP_INFO(
       get_logger(), "Direct IK output enabled: %s", joint_command_topic_.c_str());
+    RCLCPP_INFO(
+      get_logger(), "Output mode: %s; speed scaling topic: %s",
+      output_mode_.c_str(), speed_scaling_topic_.c_str());
   }
 
 private:
@@ -309,6 +353,8 @@ private:
       return;
     }
 
+    // WrenchStamped 中的力分量属于传感器坐标系。这里只旋转力，不平移力；
+    // 只有计算力矩时才需要考虑传感器原点到 TCP 的位置偏移。
     const auto & rotation = transform.transform.rotation;
     tf2::Quaternion quaternion(rotation.x, rotation.y, rotation.z, rotation.w);
     quaternion.normalize();
@@ -339,6 +385,7 @@ private:
         return;
       }
 
+      // 去零偏并进行一阶低通滤波。filtered_force_ 是后续导纳模型真正使用的力。
       for (std::size_t axis = 0; axis < 3; ++axis) {
         const double unbiased = sample[axis] - force_bias_[axis];
         filtered_force_[axis] += filter_alpha_ * (unbiased - filtered_force_[axis]);
@@ -347,9 +394,8 @@ private:
       have_wrench_ = true;
     }
 
-    // F/T sensor 本身以 100 Hz 发布，因此每收到一帧有效力数据就执行一次导纳
-    // 计算。这样传感器采样、柔顺状态更新和 Servo 命令严格一一对应，不再依赖
-    // 一个可能被高频订阅回调挤压的独立 wall timer。
+    // F/T sensor 通常以约 100 Hz 发布，因此每收到一帧有效力数据就执行一次
+    // 导纳计算。这样传感器采样和柔顺状态更新保持同步，不依赖额外 wall timer。
     control_step();
   }
 
@@ -374,6 +420,16 @@ private:
   {
     if (!enabled_ || !robot_model_) {
       return;
+    }
+
+    if (output_mode_ == "trajectory" && require_speed_scaling_) {
+      std::lock_guard<std::mutex> lock(speed_scaling_mutex_);
+      if (!have_speed_scaling_) {
+        RCLCPP_WARN_THROTTLE(
+          get_logger(), *get_clock(), 2000,
+          "No teach-pendant speed scaling received; real-robot trajectory output is held");
+        return;
+      }
     }
 
     geometry_msgs::msg::Pose target;
@@ -403,6 +459,8 @@ private:
       return;
     }
 
+    // 把连续导纳方程离散化。这里使用固定名义 dt；如果传感器频率变化很大，
+    // 应进一步改为使用相邻消息时间戳计算真实 dt。
     const double dt = 1.0 / std::max(1.0, control_rate_);
     for (std::size_t axis = 0; axis < 3; ++axis) {
       if (!compliant_axis_[axis]) {
@@ -411,6 +469,7 @@ private:
         continue;
       }
 
+      // 先消除死区，再限幅。死区用于抑制噪声，限幅用于防止异常读数产生过大动作。
       double external_force = force[axis];
       if (std::abs(external_force) <= force_deadband_[axis]) {
         external_force = 0.0;
@@ -420,12 +479,15 @@ private:
       external_force = std::clamp(
         external_force, -force_limit_[axis], force_limit_[axis]);
 
-      // 离散形式的导纳方程：外力不是直接写给电机，而是先生成一个柔顺位移。
-      // 没有外力时，弹簧 K 和阻尼 D 会让偏移逐渐回到 0。
+      // 导纳方程：M*x_ddot + D*x_dot + K*x = F。
+      // 外力不会直接写入电机；它先改变虚拟弹簧的位移 x，随后这个位移
+      // 加到原始末端目标上。没有外力时，D 和 K 会让偏移逐渐回到 0。
       const double acceleration =
         (external_force - damping_[axis] * compliance_velocity_[axis] -
         stiffness_[axis] * compliance_offset_[axis]) / std::max(0.001, mass_[axis]);
       compliance_velocity_[axis] += acceleration * dt;
+      // 速度限幅和位移限幅是两个独立的安全边界：前者限制让位速度，
+      // 后者限制最多让位多远。
       compliance_velocity_[axis] = std::clamp(
         compliance_velocity_[axis],
         -max_compliance_speed_[axis], max_compliance_speed_[axis]);
@@ -436,6 +498,8 @@ private:
     }
 
     const auto & translation = current_transform.transform.translation;
+    // 最终笛卡尔目标 = 用户目标 + 导纳偏移。
+    // 位置误差只用于到位判断；实际发送前还要经过 IK 转成关节角。
     Vector3 position_error{
       target.position.x + compliance_offset_[0] - translation.x,
       target.position.y + compliance_offset_[1] - translation.y,
@@ -479,8 +543,9 @@ private:
       current_joint_positions = current_joint_positions_;
     }
 
-    // 把“目标位姿 + 导纳偏移”做逆运动学，得到完整六轴关节角，然后直接
-    // 发送给已经验证可用的 forward_position_controller。
+    // 把“目标位姿 + 导纳偏移”做逆运动学，得到完整六轴关节角。
+    // 使用当前关节角作为 IK 初始种子，尽量保持解的连续性，减少突然跳到
+    // 另一组等价 IK 解的风险。
     moveit::core::RobotState ik_state(robot_model_);
     ik_state.setToDefaultValues();
     for (std::size_t index = 0; index < controller_joint_names_.size(); ++index) {
@@ -508,21 +573,44 @@ private:
       return;
     }
 
-    std_msgs::msg::Float64MultiArray joint_command;
-    joint_command.data.reserve(controller_joint_names_.size());
-    for (const auto & joint_name : controller_joint_names_) {
-      joint_command.data.push_back(ik_state.getVariablePosition(joint_name));
+    std::array<double, 6> target_joint_positions{};
+    for (std::size_t index = 0; index < controller_joint_names_.size(); ++index) {
+      target_joint_positions[index] =
+        ik_state.getVariablePosition(controller_joint_names_[index]);
     }
-    joint_command_publisher_->publish(joint_command);
+
+    if (output_mode_ == "position") {
+      // 仿真专用：forward_position_controller 接收六个目标位置。
+      // 这种消息没有 time_from_start，也不会自动读取示教器速度缩放。
+      std_msgs::msg::Float64MultiArray joint_command;
+      joint_command.data.assign(
+        target_joint_positions.begin(), target_joint_positions.end());
+      joint_command_publisher_->publish(joint_command);
+    } else {
+      // 真机专用：scaled_joint_trajectory_controller 接收标准 JointTrajectory。
+      // time_from_start 给出名义轨迹时间；控制器内部再根据机器人报告的
+      // speed_scaling_factor 调整轨迹推进速度，因此示教器速度滑块仍然有效。
+      trajectory_msgs::msg::JointTrajectory trajectory;
+      trajectory.header.stamp = now();
+      trajectory.joint_names.assign(
+        controller_joint_names_.begin(), controller_joint_names_.end());
+      trajectory_msgs::msg::JointTrajectoryPoint point;
+      point.positions.assign(
+        target_joint_positions.begin(), target_joint_positions.end());
+      point.time_from_start = rclcpp::Duration::from_seconds(trajectory_duration_);
+      trajectory.points.push_back(point);
+      trajectory_publisher_->publish(trajectory);
+    }
 
     const double position_error_norm = vector_norm(position_error);
     RCLCPP_INFO_THROTTLE(
       get_logger(), *get_clock(), 1000,
       "tracking waypoint %zu/%zu: error=%.3f m, force=[%.2f %.2f %.2f] N, "
-      "offset=[%.3f %.3f %.3f] m, joint command published",
+      "offset=[%.3f %.3f %.3f] m, output=%s, teach pendant scaling=%.1f%%",
       target_index_ + 1, targets_.size(), position_error_norm,
       force[0], force[1], force[2],
-      compliance_offset_[0], compliance_offset_[1], compliance_offset_[2]);
+      compliance_offset_[0], compliance_offset_[1], compliance_offset_[2],
+      output_mode_.c_str(), speed_scaling_percent_);
 
     const double orientation_error_angle = 2.0 * std::acos(
       std::clamp(orientation_error.w(), -1.0, 1.0));
@@ -550,8 +638,12 @@ private:
   std::string wrench_transform_frame_;
   std::string wrench_topic_;
   std::string joint_command_topic_;
+  std::string output_mode_;
+  std::string speed_scaling_topic_;
+  bool require_speed_scaling_;
 
   double control_rate_;
+  double trajectory_duration_;
   double position_tolerance_;
   double orientation_tolerance_;
   double filter_alpha_;
@@ -568,6 +660,7 @@ private:
 
   std::mutex data_mutex_;
   std::mutex joint_state_mutex_;
+  std::mutex speed_scaling_mutex_;
   const std::array<std::string, 6> controller_joint_names_{
     "shoulder_pan_joint",
     "shoulder_lift_joint",
@@ -577,6 +670,8 @@ private:
     "wrist_3_joint"};
   std::array<double, 6> current_joint_positions_{};
   bool have_joint_state_{false};
+  bool have_speed_scaling_{false};
+  double speed_scaling_percent_{100.0};
   std::vector<geometry_msgs::msg::Pose> targets_;
   std::size_t target_index_{0};
   Vector3 compliance_offset_{0.0, 0.0, 0.0};
@@ -594,8 +689,10 @@ private:
   tf2_ros::TransformListener tf_listener_;
   rclcpp::Publisher<geometry_msgs::msg::WrenchStamped>::SharedPtr external_wrench_publisher_;
   rclcpp::Publisher<std_msgs::msg::Float64MultiArray>::SharedPtr joint_command_publisher_;
+  rclcpp::Publisher<trajectory_msgs::msg::JointTrajectory>::SharedPtr trajectory_publisher_;
   rclcpp::Subscription<geometry_msgs::msg::WrenchStamped>::SharedPtr wrench_subscription_;
   rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr joint_state_subscription_;
+  rclcpp::Subscription<std_msgs::msg::Float64>::SharedPtr speed_scaling_subscription_;
   rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr pose_subscription_;
   rclcpp::Subscription<geometry_msgs::msg::PoseArray>::SharedPtr poses_subscription_;
   rclcpp::Service<std_srvs::srv::SetBool>::SharedPtr enable_service_;

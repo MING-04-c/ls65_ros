@@ -9,7 +9,9 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(geometry_msgs REQUIRED)
+find_package(controller_manager_msgs REQUIRED)
 find_package(std_msgs REQUIRED)
+find_package(trajectory_msgs REQUIRED)
 find_package(std_srvs REQUIRED)
 find_package(tf2 REQUIRED)
 find_package(tf2_ros REQUIRED)
@@ -49,6 +51,7 @@ ament_target_dependencies(
   geometry_msgs
   sensor_msgs
   std_msgs
+  trajectory_msgs
   std_srvs
 )
 target_link_libraries(pose_keyboard_teleop X11::X11)
@@ -67,11 +70,22 @@ ament_target_dependencies(
   moveit_ros_planning
 )
 
+add_executable(staged_pose_coordinator src/staged_pose_coordinator.cpp)
+target_compile_features(staged_pose_coordinator PUBLIC cxx_std_17)
+ament_target_dependencies(
+  staged_pose_coordinator
+  rclcpp
+  controller_manager_msgs
+  geometry_msgs
+  std_srvs
+)
+
 install(TARGETS
   moveit_pose_executor
   pose_target_publisher
   pose_keyboard_teleop
   admittance_pose_controller
+  staged_pose_coordinator
   DESTINATION lib/${PROJECT_NAME}
 )
 

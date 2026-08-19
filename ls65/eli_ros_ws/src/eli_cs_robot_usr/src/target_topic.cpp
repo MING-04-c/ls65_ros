@@ -7,17 +7,20 @@
 // 发布时，roll、pitch、yaw 会被转换成 Pose 消息需要的四元数：
 //   x, y, z, qx, qy, qz, qw
 #include <algorithm>
+#include <cerrno>
 #include <chrono>
 #include <cmath>
 #include <iostream>
 #include <memory>
 #include <mutex>
+#include <poll.h>
 #include <stdexcept>
 #include <string>
 #include <sstream>
 #include <thread>
 #include <utility>
 #include <vector>
+#include <unistd.h>
 
 #include <geometry_msgs/msg/pose_array.hpp>
 #include <rclcpp/rclcpp.hpp>
@@ -184,11 +187,42 @@ private:
   void interactive_loop()
   {
     std::string line;
+    bool prompt_visible = false;
     while (rclcpp::ok()) {
-      std::cout << "pose [x y z roll pitch yaw] > " << std::flush;
+      // poll() 超时只用于检查 Ctrl+C，不能重复打印提示符。
+      if (!prompt_visible) {
+        std::cout << "pose [x y z roll pitch yaw] > " << std::flush;
+        prompt_visible = true;
+      }
+
+      // std::getline() 会一直阻塞在键盘输入上，导致节点收到 Ctrl+C 后
+      // 不能及时结束。poll() 每 100 ms 检查一次 stdin，让线程有机会看到
+      // rclcpp::ok() 已经变成 false，然后自然退出。
+      struct pollfd input_descriptor;
+      input_descriptor.fd = STDIN_FILENO;
+      input_descriptor.events = POLLIN;
+      input_descriptor.revents = 0;
+      const int poll_result = poll(&input_descriptor, 1, 100);
+      if (!rclcpp::ok()) {
+        break;
+      }
+      if (poll_result < 0) {
+        if (errno == EINTR) {
+          continue;
+        }
+        RCLCPP_ERROR(get_logger(), "Failed to monitor terminal input");
+        break;
+      }
+      if (poll_result == 0) {
+        continue;
+      }
+      if ((input_descriptor.revents & (POLLERR | POLLHUP | POLLNVAL)) != 0) {
+        break;
+      }
       if (!std::getline(std::cin, line)) {
         break;
       }
+      prompt_visible = false;
 
       if (line == "q" || line == "Q" || line == "quit" || line == "exit") {
         RCLCPP_INFO(get_logger(), "Interactive input stopped");

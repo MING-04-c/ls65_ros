@@ -1,24 +1,16 @@
 admittance_controller:
   ros__parameters:
-    # All target positions, compliance offsets, and Servo commands use base_link.
+    use_sim_time: true
     base_frame: base_link
     end_effector_frame: tool0
-
-    # Gazebo's sensor frame_id is not in the ROS TF tree. The sensor is attached
-    # to wrist_3_joint, so use wrist_3_link to rotate the force into base_link.
     wrench_transform_frame: wrist_3_link
     wrench_topic: /force_torque_sensor_broadcaster/ft_data
+    output_mode: position
     joint_command_topic: /forward_position_controller/commands
-
     control_rate: 100.0
     position_tolerance: 0.005
     orientation_tolerance: 0.03
-
-    # First test only allows compliance along base_link Y.
     compliant_axes: "y"
-
-    # Values are ordered [x, y, z]. Steady offset is approximately F / K.
-    # For example, 10 N along Y gives about 0.04 m with K=250 N/m.
     mass: [2.0, 2.0, 2.0]
     damping: [40.0, 40.0, 40.0]
     stiffness: [250.0, 250.0, 250.0]
@@ -26,8 +18,18 @@ admittance_controller:
     force_limit: [20.0, 20.0, 20.0]
     max_compliance_offset: [0.08, 0.08, 0.08]
     max_compliance_speed: [0.05, 0.05, 0.05]
-
-    # The first 100 unloaded samples form the tare value. The remaining force
-    # signal is smoothed by a low-pass filter.
     bias_sample_count: 100
     force_filter_alpha: 0.15
+
+staged_pose_coordinator:
+  ros__parameters:
+    use_sim_time: true
+    approach_axis: z
+    approach_offset: 0.05
+    transition_delay: 0.2
+    switch_controllers: true
+    moveit_controller: joint_trajectory_controller
+    compliance_controller: forward_position_controller
+    admittance_node_name: admittance_controller
+    moveit_target_topic: /moveit_pose_executor/target_poses
+    moveit_execute_service: /moveit_pose_executor/execute_latest
