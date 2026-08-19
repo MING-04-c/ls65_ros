@@ -12,9 +12,11 @@ find_package(geometry_msgs REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(std_srvs REQUIRED)
 find_package(tf2 REQUIRED)
+find_package(tf2_ros REQUIRED)
 find_package(X11 REQUIRED)
 find_package(moveit_core REQUIRED)
 find_package(moveit_msgs REQUIRED)
+find_package(moveit_ros_planning REQUIRED)
 find_package(moveit_ros_planning_interface REQUIRED)
 
 add_executable(moveit_pose_executor src/moveit_control.cpp)
@@ -45,15 +47,31 @@ ament_target_dependencies(
   pose_keyboard_teleop
   rclcpp
   geometry_msgs
+  sensor_msgs
   std_msgs
   std_srvs
 )
 target_link_libraries(pose_keyboard_teleop X11::X11)
 
+add_executable(admittance_pose_controller src/admittance_pose_controller.cpp)
+target_compile_features(admittance_pose_controller PUBLIC cxx_std_17)
+ament_target_dependencies(
+  admittance_pose_controller
+  rclcpp
+  geometry_msgs
+  std_msgs
+  std_srvs
+  tf2
+  tf2_ros
+  moveit_core
+  moveit_ros_planning
+)
+
 install(TARGETS
   moveit_pose_executor
   pose_target_publisher
   pose_keyboard_teleop
+  admittance_pose_controller
   DESTINATION lib/${PROJECT_NAME}
 )
 

@@ -31,6 +31,8 @@ def launch_setup(context, *args, **kwargs):
     start_joint_controller = LaunchConfiguration("start_joint_controller")
     initial_joint_controller = LaunchConfiguration("initial_joint_controller")
     launch_rviz = LaunchConfiguration("launch_rviz")
+    world = LaunchConfiguration("world")
+    enable_ft_sensor = LaunchConfiguration("enable_ft_sensor")
 
     cs_type_value = cs_type.perform(context)
     is_5_axis = cs_type_value.endswith("h")
@@ -91,6 +93,9 @@ def launch_setup(context, *args, **kwargs):
             prefix,
             " ",
             "sim_ignition:=true",
+            " ",
+            "enable_ft_sensor:=",
+            enable_ft_sensor,
             " ",
             "simulation_controllers:=",
             initial_joint_controllers,
@@ -165,7 +170,7 @@ def launch_setup(context, *args, **kwargs):
         PythonLaunchDescriptionSource(
             [FindPackageShare("ros_gz_sim"), "/launch/gz_sim.launch.py"]
         ),
-        launch_arguments={"gz_args": " -r -v 4 empty.sdf"}.items(),
+        launch_arguments={"gz_args": [" -r -v 4 ", world]}.items(),
     )
 
     nodes_to_start = [
@@ -276,6 +281,20 @@ def generate_launch_description():
     )
     declared_arguments.append(
         DeclareLaunchArgument("launch_rviz", default_value="true", description="Launch RViz?")
+    )
+    declared_arguments.append(
+        DeclareLaunchArgument(
+            "world",
+            default_value="empty.sdf",
+            description="Gazebo world file. Existing launches keep using empty.sdf.",
+        )
+    )
+    declared_arguments.append(
+        DeclareLaunchArgument(
+            "enable_ft_sensor",
+            default_value="false",
+            description="Add the optional Gazebo TCP force/torque sensor.",
+        )
     )
 
     return LaunchDescription(declared_arguments + [OpaqueFunction(function=launch_setup)])
