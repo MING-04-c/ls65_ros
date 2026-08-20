@@ -13,16 +13,24 @@ admittance_controller:
     control_rate: 100.0
     position_tolerance: 0.005
     orientation_tolerance: 0.03
-    compliant_axes: "y"
-    mass: [2.0, 2.0, 2.0]
-    damping: [40.0, 40.0, 40.0]
-    stiffness: [250.0, 250.0, 250.0]
-    force_deadband: [1.0, 1.0, 1.0]
+    # 真机初次调试也使用三轴柔顺，但偏移、速度和力限幅均比仿真更严格。
+    compliant_axes: "xyz"
+    # 真机同样使用无过冲的准静态柔顺 x=F/K；先用较慢时间常数调试。
+    compliance_time_constant: 0.30
+    stiffness: [500.0, 500.0, 500.0]
+    force_deadband: [1.5, 1.5, 1.5]
     force_limit: [10.0, 10.0, 10.0]
-    max_compliance_offset: [0.02, 0.02, 0.02]
-    max_compliance_speed: [0.01, 0.01, 0.01]
+    # 真机保护阈值保持保守值。确认真实力传感器方向、工作空间和急停流程后，
+    # 才能在现场风险评估的基础上提高这个值。
+    overload_force_threshold: 30.0
+    protection_release_force: 3.0
+    max_compliance_offset: [0.01, 0.01, 0.01]
+    max_compliance_speed: [0.005, 0.005, 0.005]
+    # 真机使用更小的单周期关节变化限制，先保证调试过程平稳。
+    max_joint_command_step: 0.03
+    hold_orientation_during_compliance: true
     bias_sample_count: 200
-    force_filter_alpha: 0.08
+    force_filter_alpha: 0.05
 
 staged_pose_coordinator:
   ros__parameters:
@@ -30,6 +38,9 @@ staged_pose_coordinator:
     approach_axis: z
     approach_offset: 0.05
     transition_delay: 0.2
+    handoff_hold_delay: 0.0
+    skip_target_position_tolerance: 0.01
+    skip_target_orientation_tolerance: 0.05
     switch_controllers: false
     moveit_controller: scaled_joint_trajectory_controller
     compliance_controller: scaled_joint_trajectory_controller

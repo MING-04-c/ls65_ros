@@ -33,6 +33,9 @@ def launch_setup(context, *args, **kwargs):
     launch_rviz = LaunchConfiguration("launch_rviz")
     world = LaunchConfiguration("world")
     enable_ft_sensor = LaunchConfiguration("enable_ft_sensor")
+    simulation_position_proportional_gain = LaunchConfiguration(
+        "simulation_position_proportional_gain"
+    )
 
     cs_type_value = cs_type.perform(context)
     is_5_axis = cs_type_value.endswith("h")
@@ -96,6 +99,9 @@ def launch_setup(context, *args, **kwargs):
             " ",
             "enable_ft_sensor:=",
             enable_ft_sensor,
+            " ",
+            "simulation_position_proportional_gain:=",
+            simulation_position_proportional_gain,
             " ",
             "simulation_controllers:=",
             initial_joint_controllers,
@@ -294,6 +300,13 @@ def generate_launch_description():
             "enable_ft_sensor",
             default_value="false",
             description="Add the optional Gazebo TCP force/torque sensor.",
+        )
+    )
+    declared_arguments.append(
+        DeclareLaunchArgument(
+            "simulation_position_proportional_gain",
+            default_value="0.1",
+            description="Gazebo position-error gain; dedicated force tests may raise it.",
         )
     )
 

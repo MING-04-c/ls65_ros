@@ -26,6 +26,9 @@ def generate_launch_description():
             "launch_rviz": LaunchConfiguration("launch_rviz"),
             "world": world,
             "enable_ft_sensor": "true",
+            # 仅此 F/T 仿真固定提高底层位置 P 增益。这里使用字面值，避免
+            # 多层 IncludeLaunchDescription 中同名参数被内层默认 0.1 覆盖。
+            "simulation_position_proportional_gain": "5.0",
             "initial_joint_controller": LaunchConfiguration("initial_joint_controller"),
         }.items(),
     )

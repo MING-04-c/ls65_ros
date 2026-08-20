@@ -21,11 +21,6 @@ def generate_launch_description():
             "initial_joint_controller": "joint_trajectory_controller",
         }.items(),
     )
-    forward_controller = Node(
-        package="controller_manager", executable="spawner",
-        arguments=["forward_position_controller", "--controller-manager", "/controller_manager", "--inactive"],
-        output="screen",
-    )
     moveit = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(PathJoinSubstitution([
             moveit_cfg, "launch", "cs_moveit.launch.py"
@@ -74,6 +69,6 @@ def generate_launch_description():
     return LaunchDescription([
         DeclareLaunchArgument("launch_rviz", default_value="true"),
         DeclareLaunchArgument("angles_in_degrees", default_value="true"),
-        simulation, forward_controller, moveit, executor, admittance, coordinator,
+        simulation, moveit, executor, admittance, coordinator,
         TimerAction(period=5.0, actions=[publisher]),
     ])

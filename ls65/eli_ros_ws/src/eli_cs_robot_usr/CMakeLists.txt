@@ -77,7 +77,11 @@ ament_target_dependencies(
   rclcpp
   controller_manager_msgs
   geometry_msgs
+  sensor_msgs
+  std_msgs
   std_srvs
+  tf2
+  tf2_ros
 )
 
 install(TARGETS

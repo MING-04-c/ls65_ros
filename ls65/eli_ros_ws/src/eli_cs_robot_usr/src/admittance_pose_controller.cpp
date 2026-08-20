@@ -27,6 +27,7 @@
 
 #include <geometry_msgs/msg/pose_array.hpp>
 #include <geometry_msgs/msg/pose_stamped.hpp>
+#include <geometry_msgs/msg/twist.hpp>
 #include <geometry_msgs/msg/wrench_stamped.hpp>
 #include <moveit/robot_state/robot_state.h>
 #include <moveit/robot_model_loader/robot_model_loader.h>
@@ -74,30 +75,65 @@ public:
     require_speed_scaling_ = declare_parameter<bool>("require_speed_scaling", false);
     wrench_topic_ = declare_parameter<std::string>(
       "wrench_topic", "/force_torque_sensor_broadcaster/ft_data");
+    // 仿真验证阶段可从 /admittance_controller/external_wrench 接收已经表达在
+    // base_frame 的外力。
+    // 这条路径不会向 Gazebo 连杆施加物理 wrench，因此能单独验证“力 -> TCP
+    // 让位”的算法；sensor 模式仍读取真实 F/T 传感器。
+    force_source_ = declare_parameter<std::string>("force_source", "sensor");
 
-    // 导纳离散积分使用的控制频率。实际 control_step() 由力传感器回调触发。
+    // 控制器以这个固定频率运行。力回调只缓存最新测量值，不能直接驱动 IK 和
+    // 轨迹发布，否则传感器频率抖动会直接变成关节命令抖动。
     control_rate_ = declare_parameter<double>("control_rate", 100.0);
     // 位置和姿态误差小于阈值时，当前点才会被视为到达。
     position_tolerance_ = declare_parameter<double>("position_tolerance", 0.005);
     orientation_tolerance_ = declare_parameter<double>("orientation_tolerance", 0.03);
 
-    // 导纳模型参数，三个数组的顺序均为 [x, y, z]：
-    // M 为虚拟质量，D 为虚拟阻尼，K 为虚拟刚度。
-    // 它们决定受到同样外力时，末端偏移多少、启动多快以及是否容易振荡。
-    mass_ = read_xyz_parameter("mass", {2.0, 2.0, 2.0});
-    damping_ = read_xyz_parameter("damping", {40.0, 40.0, 40.0});
+    // 准静态柔顺参数，三个数组的顺序均为 [x, y, z]。K 是笛卡尔刚度，
+    // 单位 N/m；稳态偏移为 x=F/K。
     stiffness_ = read_xyz_parameter("stiffness", {250.0, 250.0, 250.0});
     force_deadband_ = read_xyz_parameter("force_deadband", {0.5, 0.5, 0.5});
     force_limit_ = read_xyz_parameter("force_limit", {20.0, 20.0, 20.0});
+    // 超过这个三轴合力阈值时不再继续导纳让位，而是锁存当前 TCP 位姿。
+    // 这是一层运动保护，不等同于 force_limit（后者只限幅导纳方程的输入）。
+    overload_force_threshold_ = declare_parameter<double>(
+      "overload_force_threshold", 150.0);
+    protection_release_force_ = declare_parameter<double>(
+      "protection_release_force", 5.0);
     max_compliance_offset_ = read_xyz_parameter(
       "max_compliance_offset", {0.08, 0.08, 0.08});
     max_compliance_speed_ = read_xyz_parameter(
       "max_compliance_speed", {0.05, 0.05, 0.05});
+    // 限制一次控制更新允许改变的关节角，防止 IK 在等价解之间切换时腕部
+    // 突然跳动。单位为 rad；<= 0 表示关闭这项限制。
+    max_joint_command_step_ = declare_parameter<double>(
+      "max_joint_command_step", 0.08);
 
-    // 默认仅打开 base_link 的 Y 轴柔顺。这样用户向世界 Y 方向施力时，
-    // 机器人只沿 Y 方向让位，其他两个方向仍严格跟踪目标位置。
+    // 导纳末段优先使用微分 IK：根据当前 TCP 到柔顺目标之间的小误差，通过
+    // Jacobian 计算下一小步关节角。它始终从当前姿态连续前进，不会像完整 IK
+    // 那样在多组肩/肘/腕解之间切换。先只在仿真 YAML 中开启，真机验证前保持关闭。
+    use_differential_ik_ = declare_parameter<bool>("use_differential_ik", false);
+    cartesian_position_gain_ = declare_parameter<double>("cartesian_position_gain", 2.0);
+    cartesian_orientation_gain_ = declare_parameter<double>("cartesian_orientation_gain", 2.0);
+    max_cartesian_tracking_speed_ = declare_parameter<double>(
+      "max_cartesian_tracking_speed", 0.08);
+    max_angular_tracking_speed_ = declare_parameter<double>(
+      "max_angular_tracking_speed", 0.30);
+    hold_orientation_during_compliance_ = declare_parameter<bool>(
+      "hold_orientation_during_compliance", true);
+
+    // 本仿真采用准静态柔顺模型，而不是二阶导纳积分：
+    //   x_target = F / K
+    //   x <- x + alpha * (x_target - x)
+    // 其中 alpha 由 compliance_time_constant 决定。这样恒力只产生有限让位，
+    // 撤力后偏移平滑回零，不会因虚拟质量保存的速度继续摆动。
+    compliance_time_constant_ = declare_parameter<double>(
+      "compliance_time_constant", 0.12);
+
+    // 可柔顺的方向在 base_link 下指定。例如 "xyz" 表示三个平移方向都能
+    // 让位；"z" 表示只沿基座 Z 轴让位。单轴模式会把横向接触力硬性压回
+    // 目标，有时会造成横向推挤和 IK 解抖动，因此默认采用三轴柔顺。
     const std::string compliant_axes = declare_parameter<std::string>(
-      "compliant_axes", "y");
+      "compliant_axes", "xyz");
     compliant_axis_[0] = compliant_axes.find('x') != std::string::npos;
     compliant_axis_[1] = compliant_axes.find('y') != std::string::npos;
     compliant_axis_[2] = compliant_axes.find('z') != std::string::npos;
@@ -110,12 +146,28 @@ public:
       1, declare_parameter<std::int64_t>("bias_sample_count", 100)));
 
     external_wrench_publisher_ = create_publisher<geometry_msgs::msg::WrenchStamped>(
-      "~/external_wrench", rclcpp::QoS(10).best_effort());
+      "~/measured_wrench", rclcpp::QoS(10).best_effort());
+    commanded_pose_publisher_ = create_publisher<geometry_msgs::msg::PoseStamped>(
+      "~/commanded_pose", rclcpp::QoS(10).best_effort());
     if (output_mode_ != "position" && output_mode_ != "trajectory") {
       throw std::runtime_error("output_mode must be 'position' or 'trajectory'");
     }
+    if (force_source_ != "sensor" && force_source_ != "topic") {
+      throw std::runtime_error("force_source must be 'sensor' or 'topic'");
+    }
     if (trajectory_duration_ <= 0.0) {
       throw std::runtime_error("trajectory_duration must be greater than zero");
+    }
+    if (overload_force_threshold_ <= 0.0 || protection_release_force_ < 0.0)
+    {
+      throw std::runtime_error(
+        "invalid overload protection parameters");
+    }
+    if (control_rate_ <= 0.0 || compliance_time_constant_ <= 0.0 ||
+      cartesian_position_gain_ <= 0.0 || cartesian_orientation_gain_ <= 0.0 ||
+      max_cartesian_tracking_speed_ <= 0.0 || max_angular_tracking_speed_ <= 0.0)
+    {
+      throw std::runtime_error("invalid differential IK parameters");
     }
     if (output_mode_ == "position") {
       joint_command_publisher_ = create_publisher<std_msgs::msg::Float64MultiArray>(
@@ -147,6 +199,14 @@ public:
     wrench_subscription_ = create_subscription<geometry_msgs::msg::WrenchStamped>(
       wrench_topic_, rclcpp::SensorDataQoS(),
       std::bind(&AdmittancePoseController::wrench_callback, this, std::placeholders::_1));
+    injected_wrench_subscription_ = create_subscription<geometry_msgs::msg::WrenchStamped>(
+      "/admittance_controller/external_wrench", rclcpp::QoS(10).reliable(),
+      std::bind(&AdmittancePoseController::injected_wrench_callback, this, std::placeholders::_1));
+
+    const auto control_period = std::chrono::duration_cast<std::chrono::nanoseconds>(
+      std::chrono::duration<double>(1.0 / control_rate_));
+    control_timer_ = create_wall_timer(
+      control_period, std::bind(&AdmittancePoseController::control_step, this));
 
     // 单点接口，适合直接使用 ros2 topic pub 发布一个 PoseStamped。
     pose_subscription_ = create_subscription<geometry_msgs::msg::PoseStamped>(
@@ -166,8 +226,12 @@ public:
         std_srvs::srv::SetBool::Response::SharedPtr response)
       {
         enabled_ = request->data;
+        // 每次开关都清空柔顺偏移。新目标不会继承上一个目标受到的外力让位。
+        reset_admittance_state();
         if (!enabled_) {
-          reset_admittance_state();
+          // 协调器在开始一个新 MoveIt 目标前会先关闭导纳。此时旧目标产生的
+          // 位移限位/过载保持必须解除，否则规划完成后新目标仍会被旧保持点覆盖。
+          overload_hold_active_ = false;
         }
         response->success = true;
         response->message = enabled_ ? "admittance control enabled" : "admittance control disabled";
@@ -189,6 +253,8 @@ public:
       get_logger(),
       "Admittance controller ready: target='%s/target_pose(s)', wrench='%s', axes='%s'",
       get_fully_qualified_name(), wrench_topic_.c_str(), compliant_axes.c_str());
+    RCLCPP_INFO(
+      get_logger(), "Force source: %s", force_source_.c_str());
     RCLCPP_INFO(
       get_logger(),
       "Keep the tool unloaded while collecting the first %zu force samples",
@@ -214,6 +280,14 @@ public:
     RCLCPP_INFO(
       get_logger(), "Output mode: %s; speed scaling topic: %s",
       output_mode_.c_str(), speed_scaling_topic_.c_str());
+    RCLCPP_INFO(
+      get_logger(), "Compliant kinematics: %s",
+      use_differential_ik_ ? "damped differential IK" : "full-pose IK");
+    RCLCPP_INFO(
+      get_logger(),
+      "Quasi-static compliance enabled: x=F/K, time constant=%.3f s; "
+      "K=[%.1f %.1f %.1f] N/m",
+      compliance_time_constant_, stiffness_[0], stiffness_[1], stiffness_[2]);
   }
 
 private:
@@ -251,6 +325,15 @@ private:
     pose.orientation.z /= norm;
     pose.orientation.w /= norm;
     return pose;
+  }
+
+  static tf2::Vector3 limited_vector(tf2::Vector3 vector, const double maximum_norm)
+  {
+    const double norm = vector.length();
+    if (norm > maximum_norm && norm > 1e-12) {
+      vector *= maximum_norm / norm;
+    }
+    return vector;
   }
 
   void pose_callback(const geometry_msgs::msg::PoseStamped::ConstSharedPtr message)
@@ -299,6 +382,8 @@ private:
     std::lock_guard<std::mutex> lock(data_mutex_);
     targets_ = std::move(targets);
     target_index_ = 0;
+    // 新目标不会强制解除保护。若外力仍然存在，解除保护后立即运动会让
+    // trajectory controller 因跟踪误差过大而中止。保护只由力回落条件解除。
     reset_admittance_state();
     RCLCPP_INFO(get_logger(), "Received %zu target pose(s)", targets_.size());
   }
@@ -339,6 +424,9 @@ private:
 
   void wrench_callback(const geometry_msgs::msg::WrenchStamped::ConstSharedPtr message)
   {
+    if (force_source_ != "sensor") {
+      return;
+    }
     // Gazebo 传感器给出的力分量位于传感器自身坐标系。导纳计算在 base_link
     // 中进行，所以这里只旋转力向量，不平移它。平移只会影响力矩，不影响力。
     geometry_msgs::msg::TransformStamped transform;
@@ -394,9 +482,33 @@ private:
       have_wrench_ = true;
     }
 
-    // F/T sensor 通常以约 100 Hz 发布，因此每收到一帧有效力数据就执行一次
-    // 导纳计算。这样传感器采样和柔顺状态更新保持同步，不依赖额外 wall timer。
-    control_step();
+    // 控制循环由固定频率 timer 驱动；这里仅更新最新力值。
+  }
+
+  void injected_wrench_callback(const geometry_msgs::msg::WrenchStamped::ConstSharedPtr message)
+  {
+    if (force_source_ != "topic") {
+      return;
+    }
+    if (!message->header.frame_id.empty() && message->header.frame_id != base_frame_) {
+      RCLCPP_WARN_THROTTLE(
+        get_logger(), *get_clock(), 2000,
+        "Ignored injected wrench in frame '%s'; expected '%s'",
+        message->header.frame_id.c_str(), base_frame_.c_str());
+      return;
+    }
+
+    const Vector3 sample{
+      message->wrench.force.x, message->wrench.force.y, message->wrench.force.z};
+    std::lock_guard<std::mutex> lock(data_mutex_);
+    // 注入话题本身就是去零后的外力，不做开机 bias 采集和二次滤波。
+    filtered_force_ = sample;
+    last_wrench_time_ = now();
+    have_wrench_ = true;
+    RCLCPP_INFO_THROTTLE(
+      get_logger(), *get_clock(), 1000,
+      "Injected force accepted in %s: [%.2f %.2f %.2f] N",
+      base_frame_.c_str(), sample[0], sample[1], sample[2]);
   }
 
   void begin_bias_collection()
@@ -413,7 +525,6 @@ private:
   void reset_admittance_state()
   {
     compliance_offset_.fill(0.0);
-    compliance_velocity_.fill(0.0);
   }
 
   void control_step()
@@ -459,13 +570,56 @@ private:
       return;
     }
 
-    // 把连续导纳方程离散化。这里使用固定名义 dt；如果传感器频率变化很大，
-    // 应进一步改为使用相邻消息时间戳计算真实 dt。
-    const double dt = 1.0 / std::max(1.0, control_rate_);
+    geometry_msgs::msg::Pose current_pose;
+    current_pose.position.x = current_transform.transform.translation.x;
+    current_pose.position.y = current_transform.transform.translation.y;
+    current_pose.position.z = current_transform.transform.translation.z;
+    current_pose.orientation = current_transform.transform.rotation;
+
+    // 大力保护：当合力超过阈值，不再把“原始目标 + 导纳偏移”继续推向外部
+    // 障碍物，而是将进入保护瞬间的 TCP 位姿作为新的保持点。这样控制器只
+    // 尝试保持当前位置，不会因导纳偏移已到上限还持续追踪目标而前后摆动。
+    const double force_norm = vector_norm(force);
+    {
+      std::lock_guard<std::mutex> lock(data_mutex_);
+      if (!overload_hold_active_ &&
+        force_norm >= overload_force_threshold_)
+      {
+        overload_hold_active_ = true;
+        overload_hold_target_ = current_pose;
+        reset_admittance_state();
+        RCLCPP_WARN(
+          get_logger(),
+          "Protection active: force=%.1f N; holding current TCP pose "
+          "until force drops below %.1f N",
+          force_norm, protection_release_force_);
+      } else if (overload_hold_active_ && force_norm < protection_release_force_)
+      {
+        overload_hold_active_ = false;
+        reset_admittance_state();
+        RCLCPP_INFO(
+          get_logger(), "Overload released at %.1f N; compliant tracking resumed", force_norm);
+      }
+
+      if (overload_hold_active_) {
+        target = overload_hold_target_;
+        // 在保持状态中持续清零，确保阈值附近的残余导纳速度不会带来漂移。
+        compliance_offset_.fill(0.0);
+      }
+    }
+
+    // 这里刻意不用二阶 M*x_ddot + D*x_dot + K*x = F 积分。外力持续存在时，
+    // 二阶状态会储存速度；Gazebo 同时又在物理上推动机器人，两个动态环叠加
+    // 后容易出现整臂摆动。准静态模型的平衡点就是 F/K，方向必然与 base_link
+    // 下的测得力一致。指数平滑只限制接近该平衡点的速度，不会产生过冲。
+    const double dt = 1.0 / control_rate_;
+    const double smoothing = 1.0 - std::exp(-dt / compliance_time_constant_);
     for (std::size_t axis = 0; axis < 3; ++axis) {
+      if (overload_hold_active_) {
+        break;
+      }
       if (!compliant_axis_[axis]) {
         compliance_offset_[axis] = 0.0;
-        compliance_velocity_[axis] = 0.0;
         continue;
       }
 
@@ -479,22 +633,15 @@ private:
       external_force = std::clamp(
         external_force, -force_limit_[axis], force_limit_[axis]);
 
-      // 导纳方程：M*x_ddot + D*x_dot + K*x = F。
-      // 外力不会直接写入电机；它先改变虚拟弹簧的位移 x，随后这个位移
-      // 加到原始末端目标上。没有外力时，D 和 K 会让偏移逐渐回到 0。
-      const double acceleration =
-        (external_force - damping_[axis] * compliance_velocity_[axis] -
-        stiffness_[axis] * compliance_offset_[axis]) / std::max(0.001, mass_[axis]);
-      compliance_velocity_[axis] += acceleration * dt;
-      // 速度限幅和位移限幅是两个独立的安全边界：前者限制让位速度，
-      // 后者限制最多让位多远。
-      compliance_velocity_[axis] = std::clamp(
-        compliance_velocity_[axis],
-        -max_compliance_speed_[axis], max_compliance_speed_[axis]);
-      compliance_offset_[axis] += compliance_velocity_[axis] * dt;
-      compliance_offset_[axis] = std::clamp(
-        compliance_offset_[axis],
+      const double equilibrium_offset = std::clamp(
+        external_force / std::max(1.0, stiffness_[axis]),
         -max_compliance_offset_[axis], max_compliance_offset_[axis]);
+      double offset_step = smoothing * (equilibrium_offset - compliance_offset_[axis]);
+      // 平滑器每一个控制周期允许的最大移动量。它使传感器的一帧尖峰不可能
+      // 直接转化成明显的 TCP 跳动，同时不改变最终的 F/K 让位距离。
+      const double maximum_step = max_compliance_speed_[axis] * dt;
+      offset_step = std::clamp(offset_step, -maximum_step, maximum_step);
+      compliance_offset_[axis] += offset_step;
     }
 
     const auto & translation = current_transform.transform.translation;
@@ -504,6 +651,15 @@ private:
       target.position.x + compliance_offset_[0] - translation.x,
       target.position.y + compliance_offset_[1] - translation.y,
       target.position.z + compliance_offset_[2] - translation.z};
+
+    geometry_msgs::msg::PoseStamped commanded_pose;
+    commanded_pose.header.stamp = now();
+    commanded_pose.header.frame_id = base_frame_;
+    commanded_pose.pose = target;
+    commanded_pose.pose.position.x += compliance_offset_[0];
+    commanded_pose.pose.position.y += compliance_offset_[1];
+    commanded_pose.pose.position.z += compliance_offset_[2];
+    commanded_pose_publisher_->publish(commanded_pose);
 
     tf2::Quaternion current_orientation(
       current_transform.transform.rotation.x,
@@ -520,6 +676,13 @@ private:
       orientation_error = tf2::Quaternion(
         -orientation_error.x(), -orientation_error.y(),
         -orientation_error.z(), -orientation_error.w());
+    }
+    // 对柔顺位移来说，姿态不是控制变量。继续追踪目标姿态会让 IK 通过腕部
+    // 关节快速补偿，表现为摆腕/摆臂。这里保留原姿态用于“到位判断”，但给
+    // 微分 IK 的姿态误差清零，只让 TCP 平移。
+    tf2::Quaternion orientation_error_for_ik = orientation_error;
+    if (hold_orientation_during_compliance_) {
+      orientation_error_for_ik = tf2::Quaternion(0.0, 0.0, 0.0, 1.0);
     }
 
     geometry_msgs::msg::WrenchStamped external_wrench;
@@ -543,9 +706,8 @@ private:
       current_joint_positions = current_joint_positions_;
     }
 
-    // 把“目标位姿 + 导纳偏移”做逆运动学，得到完整六轴关节角。
-    // 使用当前关节角作为 IK 初始种子，尽量保持解的连续性，减少突然跳到
-    // 另一组等价 IK 解的风险。
+    // 将当前关节角写入 RobotState。微分 IK 会在这个状态计算 Jacobian；
+    // 完整 IK 模式则把它作为求解初始种子。
     moveit::core::RobotState ik_state(robot_model_);
     ik_state.setToDefaultValues();
     for (std::size_t index = 0; index < controller_joint_names_.size(); ++index) {
@@ -561,22 +723,120 @@ private:
       return;
     }
 
-    geometry_msgs::msg::Pose ik_target = target;
-    ik_target.position.x += compliance_offset_[0];
-    ik_target.position.y += compliance_offset_[1];
-    ik_target.position.z += compliance_offset_[2];
-    if (!ik_state.setFromIK(
-        joint_model_group, ik_target, end_effector_frame_, 0.01))
-    {
-      RCLCPP_WARN_THROTTLE(
-        get_logger(), *get_clock(), 1000, "MoveIt IK failed for the compliant target");
-      return;
-    }
-
     std::array<double, 6> target_joint_positions{};
-    for (std::size_t index = 0; index < controller_joint_names_.size(); ++index) {
-      target_joint_positions[index] =
-        ik_state.getVariablePosition(controller_joint_names_[index]);
+    double largest_joint_command_step = 0.0;
+    if (use_differential_ik_) {
+      const auto * end_effector_link = robot_model_->getLinkModel(end_effector_frame_);
+      if (end_effector_link == nullptr) {
+        RCLCPP_WARN_THROTTLE(
+          get_logger(), *get_clock(), 1000, "End-effector link '%s' is unavailable",
+          end_effector_frame_.c_str());
+        return;
+      }
+
+      // 位置误差先转成期望 TCP 线速度，再对三轴合速度限幅。这样同时受到
+      // X/Y 力时沿对角线平移，而不是每个轴都按最大速度造成合速度放大。
+      tf2::Vector3 linear_velocity_base(
+        position_error[0] * cartesian_position_gain_,
+        position_error[1] * cartesian_position_gain_,
+        position_error[2] * cartesian_position_gain_);
+      linear_velocity_base = limited_vector(
+        linear_velocity_base, max_cartesian_tracking_speed_);
+
+      // 四元数误差转为轴角速度，用于保持用户给定的末端姿态。阻尼伪逆会在
+      // 腕部奇异点附近自动减小关节动作，避免为了严格保持姿态而甩腕。
+      const double half_angle_sine = std::sqrt(std::max(
+        0.0, 1.0 - orientation_error_for_ik.w() * orientation_error_for_ik.w()));
+      tf2::Vector3 angular_velocity_base(0.0, 0.0, 0.0);
+      if (half_angle_sine > 1e-6) {
+        const double angle = 2.0 * std::atan2(
+          half_angle_sine, orientation_error_for_ik.w());
+        angular_velocity_base = tf2::Vector3(
+          orientation_error_for_ik.x(), orientation_error_for_ik.y(),
+          orientation_error_for_ik.z());
+        angular_velocity_base *= cartesian_orientation_gain_ * angle / half_angle_sine;
+        angular_velocity_base = limited_vector(
+          angular_velocity_base, max_angular_tracking_speed_);
+      }
+
+      // RobotState::setFromDiffIK 要求速度分量表达在 tip 坐标系。上面的位姿误差
+      // 是在 base_link 中计算的，因此先用当前 TCP 四元数的逆旋转到 tool0。
+      const tf2::Quaternion base_to_tip = current_orientation.inverse();
+      const tf2::Vector3 linear_velocity_tip =
+        tf2::quatRotate(base_to_tip, linear_velocity_base);
+      const tf2::Vector3 angular_velocity_tip =
+        tf2::quatRotate(base_to_tip, angular_velocity_base);
+      geometry_msgs::msg::Twist desired_twist;
+      desired_twist.linear.x = linear_velocity_tip.x();
+      desired_twist.linear.y = linear_velocity_tip.y();
+      desired_twist.linear.z = linear_velocity_tip.z();
+      desired_twist.angular.x = angular_velocity_tip.x();
+      desired_twist.angular.y = angular_velocity_tip.y();
+      desired_twist.angular.z = angular_velocity_tip.z();
+
+      // 使用 MoveIt 内置差分 IK。它根据 JointModelGroup 自己处理 Jacobian 的
+      // 变量顺序，并从当前 RobotState 连续积分一个 trajectory_duration 小步。
+      if (!ik_state.setFromDiffIK(
+          joint_model_group, desired_twist, end_effector_frame_, trajectory_duration_))
+      {
+        RCLCPP_WARN_THROTTLE(
+          get_logger(), *get_clock(), 1000, "MoveIt differential IK failed for the TCP step");
+        return;
+      }
+
+      for (std::size_t index = 0; index < controller_joint_names_.size(); ++index) {
+        double joint_step = ik_state.getVariablePosition(controller_joint_names_[index]) -
+          current_joint_positions[index];
+        if (max_joint_command_step_ > 0.0) {
+          joint_step = std::clamp(
+            joint_step, -max_joint_command_step_, max_joint_command_step_);
+        }
+        target_joint_positions[index] = current_joint_positions[index] + joint_step;
+        const auto & bounds = robot_model_->getVariableBounds(controller_joint_names_[index]);
+        if (bounds.position_bounded_) {
+          target_joint_positions[index] = std::clamp(
+            target_joint_positions[index], bounds.min_position_, bounds.max_position_);
+        }
+        largest_joint_command_step = std::max(
+          largest_joint_command_step,
+          std::abs(target_joint_positions[index] - current_joint_positions[index]));
+      }
+    } else {
+      geometry_msgs::msg::Pose ik_target = target;
+      ik_target.position.x += compliance_offset_[0];
+      ik_target.position.y += compliance_offset_[1];
+      ik_target.position.z += compliance_offset_[2];
+      if (!ik_state.setFromIK(
+          joint_model_group, ik_target, end_effector_frame_, 0.01))
+      {
+        RCLCPP_WARN_THROTTLE(
+          get_logger(), *get_clock(), 1000, "MoveIt IK failed for the compliant target");
+        return;
+      }
+
+      for (std::size_t index = 0; index < controller_joint_names_.size(); ++index) {
+        const auto & joint_name = controller_joint_names_[index];
+        const double raw_ik_position = ik_state.getVariablePosition(joint_name);
+        target_joint_positions[index] = raw_ik_position;
+        const double wrapped_delta = std::remainder(
+          raw_ik_position - current_joint_positions[index], 2.0 * M_PI);
+        const double nearest_equivalent = current_joint_positions[index] + wrapped_delta;
+        const auto & bounds = robot_model_->getVariableBounds(joint_name);
+        if (!bounds.position_bounded_ ||
+          (nearest_equivalent >= bounds.min_position_ &&
+          nearest_equivalent <= bounds.max_position_))
+        {
+          target_joint_positions[index] = nearest_equivalent;
+        }
+        if (max_joint_command_step_ > 0.0) {
+          const double delta = target_joint_positions[index] - current_joint_positions[index];
+          target_joint_positions[index] = current_joint_positions[index] + std::clamp(
+            delta, -max_joint_command_step_, max_joint_command_step_);
+        }
+        largest_joint_command_step = std::max(
+          largest_joint_command_step,
+          std::abs(target_joint_positions[index] - current_joint_positions[index]));
+      }
     }
 
     if (output_mode_ == "position") {
@@ -606,10 +866,13 @@ private:
     RCLCPP_INFO_THROTTLE(
       get_logger(), *get_clock(), 1000,
       "tracking waypoint %zu/%zu: error=%.3f m, force=[%.2f %.2f %.2f] N, "
-      "offset=[%.3f %.3f %.3f] m, output=%s, teach pendant scaling=%.1f%%",
+      "offset=[%.3f %.3f %.3f] m, max_joint_step=%.3f rad, overload_hold=%s, "
+      "output=%s, teach pendant scaling=%.1f%%",
       target_index_ + 1, targets_.size(), position_error_norm,
       force[0], force[1], force[2],
       compliance_offset_[0], compliance_offset_[1], compliance_offset_[2],
+      largest_joint_command_step,
+      overload_hold_active_ ? "true" : "false",
       output_mode_.c_str(), speed_scaling_percent_);
 
     const double orientation_error_angle = 2.0 * std::acos(
@@ -639,6 +902,7 @@ private:
   std::string wrench_topic_;
   std::string joint_command_topic_;
   std::string output_mode_;
+  std::string force_source_;
   std::string speed_scaling_topic_;
   bool require_speed_scaling_;
 
@@ -646,11 +910,19 @@ private:
   double trajectory_duration_;
   double position_tolerance_;
   double orientation_tolerance_;
+  double overload_force_threshold_;
+  double protection_release_force_;
+  double max_joint_command_step_;
+  bool use_differential_ik_;
+  double cartesian_position_gain_;
+  double cartesian_orientation_gain_;
+  double max_cartesian_tracking_speed_;
+  double max_angular_tracking_speed_;
+  bool hold_orientation_during_compliance_;
+  double compliance_time_constant_;
   double filter_alpha_;
   std::size_t bias_sample_count_;
 
-  Vector3 mass_;
-  Vector3 damping_;
   Vector3 stiffness_;
   Vector3 force_deadband_;
   Vector3 force_limit_;
@@ -675,28 +947,32 @@ private:
   std::vector<geometry_msgs::msg::Pose> targets_;
   std::size_t target_index_{0};
   Vector3 compliance_offset_{0.0, 0.0, 0.0};
-  Vector3 compliance_velocity_{0.0, 0.0, 0.0};
   Vector3 bias_sum_{0.0, 0.0, 0.0};
   Vector3 force_bias_{0.0, 0.0, 0.0};
   Vector3 filtered_force_{0.0, 0.0, 0.0};
   bool bias_ready_{false};
   std::size_t bias_samples_received_{0};
   bool have_wrench_{false};
+  bool overload_hold_active_{false};
+  geometry_msgs::msg::Pose overload_hold_target_;
   rclcpp::Time last_wrench_time_{0, 0, RCL_ROS_TIME};
 
   bool enabled_{true};
   tf2_ros::Buffer tf_buffer_;
   tf2_ros::TransformListener tf_listener_;
   rclcpp::Publisher<geometry_msgs::msg::WrenchStamped>::SharedPtr external_wrench_publisher_;
+  rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr commanded_pose_publisher_;
   rclcpp::Publisher<std_msgs::msg::Float64MultiArray>::SharedPtr joint_command_publisher_;
   rclcpp::Publisher<trajectory_msgs::msg::JointTrajectory>::SharedPtr trajectory_publisher_;
   rclcpp::Subscription<geometry_msgs::msg::WrenchStamped>::SharedPtr wrench_subscription_;
+  rclcpp::Subscription<geometry_msgs::msg::WrenchStamped>::SharedPtr injected_wrench_subscription_;
   rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr joint_state_subscription_;
   rclcpp::Subscription<std_msgs::msg::Float64>::SharedPtr speed_scaling_subscription_;
   rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr pose_subscription_;
   rclcpp::Subscription<geometry_msgs::msg::PoseArray>::SharedPtr poses_subscription_;
   rclcpp::Service<std_srvs::srv::SetBool>::SharedPtr enable_service_;
   rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr tare_service_;
+  rclcpp::TimerBase::SharedPtr control_timer_;
   std::unique_ptr<robot_model_loader::RobotModelLoader> robot_model_loader_;
   moveit::core::RobotModelPtr robot_model_;
 };

@@ -5,21 +5,61 @@ admittance_controller:
     end_effector_frame: tool0
     wrench_transform_frame: wrist_3_link
     wrench_topic: /force_torque_sensor_broadcaster/ft_data
-    output_mode: position
-    joint_command_topic: /forward_position_controller/commands
+    # topic 模式只用于验证导纳算法：向 /admittance_controller/external_wrench
+    # 发布 base_link 下的外力。它不会物理推倒 Gazebo 连杆，便于确认 TCP
+    # 严格沿受力方向移动和撤力回位。要读取 F/T 传感器时改回 sensor。
+    force_source: topic
+    # MoveIt 与导纳共用同一个轨迹控制器。导纳每次发布一个短轨迹，避免
+    # trajectory controller 切换到 position controller 时出现重力下坠。
+    output_mode: trajectory
+    joint_command_topic: /joint_trajectory_controller/joint_trajectory
+    # 每个短轨迹点的到达时间。稍长的时间可以减少持续更新轨迹造成的冲击。
+    # 传感器约 60-100 Hz；短轨迹不能远大于更新周期，否则控制器总在追旧目标。
+    trajectory_duration: 0.08
     control_rate: 100.0
     position_tolerance: 0.005
     orientation_tolerance: 0.03
-    compliant_axes: "y"
-    mass: [2.0, 2.0, 2.0]
-    damping: [40.0, 40.0, 40.0]
-    stiffness: [250.0, 250.0, 250.0]
-    force_deadband: [0.5, 0.5, 0.5]
-    force_limit: [20.0, 20.0, 20.0]
-    max_compliance_offset: [0.08, 0.08, 0.08]
-    max_compliance_speed: [0.05, 0.05, 0.05]
+    # 三轴平移均可柔顺，避免接触力存在横向分量时被单轴约束反复推回目标。
+    compliant_axes: "xyz"
+    # 准静态柔顺满足 F=K*x。力先扣除 1 N 死区，因此选 K=1490 N/m：
+    # 30 N 约让位 0.019 m；60 N 约让位 0.040 m；150 N 约让位 0.100 m。
+    # 不再积分虚拟质量和速度，避免 Gazebo 物理受力与二阶导纳叠加后摆臂。
+    # time_constant 越小响应越快；越大越平滑，且不会改变最终让位距离。
+    # 0.08 s 使让位在约 0.25 s 内接近稳定值；若希望更柔和可改回 0.20。
+    compliance_time_constant: 0.08
+    stiffness: [1490.0, 1490.0, 1490.0]
+    force_deadband: [1.0, 1.0, 1.0]
+    # 导纳方程允许使用最高 150 N 的每轴力值，但最大让位距离仍受 10 cm 限制。
+    # 这样大力不会产生无限大的位移。
+    force_limit: [150.0, 150.0, 150.0]
+    # 过载阈值必须高于正常导纳工作区，否则还没让位到限值就会锁住。
+    # 三轴各自最多允许 150 N，因此总合力保护阈值应高于 sqrt(3)*150 N。
+    overload_force_threshold: 270.0
+    # 进入异常合力保护后，必须等合力低于 5 N 才恢复导纳。
+    protection_release_force: 5.0
+    # 最大柔顺让位距离，顺序为 [X, Y, Z]，单位是米。
+    # 当前三个方向最多都可偏离原始目标 0.10 m，也就是 10 cm。
+    # 以后如果只想修改某个方向，例如 X=5 cm、Y=10 cm、Z=3 cm，可写成：
+    # max_compliance_offset: [0.05, 0.10, 0.03]
+    # 数值越大，可让位距离越远，但更容易接近关节限位或不可达区域。
+    max_compliance_offset: [0.10, 0.10, 0.10]
+    max_compliance_speed: [0.10, 0.10, 0.10]
+    # 单次关节命令最多变化 0.04 rad，避免 IK 分支切换导致腕部突然摆动。
+    # 若仍有跳动可降到 0.02；若最后 5 cm 跟踪明显过慢，可增大到 0.06。
+    max_joint_command_step: 0.04
+    # 仿真末段使用阻尼微分 IK。它从当前关节状态计算连续小步，适合多轴柔顺，
+    # 不会因为完整 IK 选择另一组腕部解而突然摆动。
+    use_differential_ik: true
+    # 位姿误差到 TCP 速度的比例增益，单位约为 1/s。
+    cartesian_position_gain: 2.0
+    cartesian_orientation_gain: 2.0
+    # TCP 跟踪目标时的最大线速度和角速度，单位分别为 m/s、rad/s。
+    max_cartesian_tracking_speed: 0.08
+    max_angular_tracking_speed: 0.30
+    # 柔顺末段只平移，保持进入柔顺阶段时的末端姿态，避免腕部摆动。
+    hold_orientation_during_compliance: true
     bias_sample_count: 100
-    force_filter_alpha: 0.15
+    force_filter_alpha: 0.08
 
 staged_pose_coordinator:
   ros__parameters:
@@ -27,9 +67,14 @@ staged_pose_coordinator:
     approach_axis: z
     approach_offset: 0.05
     transition_delay: 0.2
-    switch_controllers: true
+    # 仿真中不再切换控制器，MoveIt 和导纳全程使用 joint_trajectory_controller。
+    handoff_hold_delay: 0.0
+    # 当前 TCP 在目标 1 cm 内、姿态误差在 0.05 rad 内时，重复目标直接忽略。
+    skip_target_position_tolerance: 0.01
+    skip_target_orientation_tolerance: 0.05
+    switch_controllers: false
     moveit_controller: joint_trajectory_controller
-    compliance_controller: forward_position_controller
+    compliance_controller: joint_trajectory_controller
     admittance_node_name: admittance_controller
     moveit_target_topic: /moveit_pose_executor/target_poses
     moveit_execute_service: /moveit_pose_executor/execute_latest
