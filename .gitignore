@@ -9,5 +9,3 @@
 
 # 忽略开发工具配置
 **/.vscode/
-**/.codex/
-**/.agents/

@@ -32,7 +32,6 @@ def launch_setup(context, *args, **kwargs):
     use_sim_time = LaunchConfiguration("use_sim_time")
     launch_rviz = LaunchConfiguration("launch_rviz")
     launch_servo = LaunchConfiguration("launch_servo")
-    servo_command_mode = LaunchConfiguration("servo_command_mode")
     publish_robot_description = LaunchConfiguration("publish_robot_description")
     publish_robot_description_semantic = LaunchConfiguration("publish_robot_description_semantic")
 
@@ -258,22 +257,13 @@ def launch_setup(context, *args, **kwargs):
 
     # Servo node for realtime control
     servo_yaml = load_yaml("eli_cs_robot_moveit_config", "config/cs_servo.yaml")
+    servo_yaml["command_out_type"] = "trajectory_msgs/JointTrajectory"
     servo_yaml["robot_link_command_frame"] = "base_link"
     servo_yaml["is_primary_planning_scene_monitor"] = False
     servo_yaml["use_gazebo"] = change_controllers == "true"
-    servo_command_mode_value = servo_command_mode.perform(context)
-    if servo_command_mode_value == "forward_position":
-        # Servo publishes one complete joint-position array every cycle. This
-        # is useful for continuous simulation/admittance control and avoids
-        # treating every small correction as a new time-parameterized trajectory.
-        servo_yaml["command_out_type"] = "std_msgs/Float64MultiArray"
-        servo_yaml["command_out_topic"] = "/forward_position_controller/commands"
-        servo_yaml["publish_joint_velocities"] = False
-    elif change_controllers == "true":
-        servo_yaml["command_out_type"] = "trajectory_msgs/JointTrajectory"
+    if change_controllers == "true":
         servo_yaml["command_out_topic"] = "/joint_trajectory_controller/joint_trajectory"
     else:
-        servo_yaml["command_out_type"] = "trajectory_msgs/JointTrajectory"
         servo_yaml["command_out_topic"] = "/scaled_joint_trajectory_controller/joint_trajectory"
     servo_params = {"moveit_servo": servo_yaml}
     servo_node = Node(
@@ -407,14 +397,6 @@ def generate_launch_description():
     )
     declared_arguments.append(
         DeclareLaunchArgument("launch_servo", default_value="true", description="Launch Servo?")
-    )
-    declared_arguments.append(
-        DeclareLaunchArgument(
-            "servo_command_mode",
-            default_value="trajectory",
-            choices=["trajectory", "forward_position"],
-            description="Servo output: trajectory topic or continuous joint positions.",
-        )
     )
     declared_arguments.append(
         DeclareLaunchArgument(
