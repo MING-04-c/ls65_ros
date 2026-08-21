@@ -25,8 +25,9 @@ admittance_controller:
     # 30 N 约让位 0.019 m；60 N 约让位 0.040 m；150 N 约让位 0.100 m。
     # 不再积分虚拟质量和速度，避免 Gazebo 物理受力与二阶导纳叠加后摆臂。
     # time_constant 越小响应越快；越大越平滑，且不会改变最终让位距离。
-    # 0.08 s 使让位在约 0.25 s 内接近稳定值；若希望更柔和可改回 0.20。
-    compliance_time_constant: 0.08
+    # 0.03 s 使让位在约 0.1 s 内接近稳定值，适合 Gazebo 中观察力响应。
+    # 真机不要直接照搬这个数值，应从 compliant_real.yaml 的保守参数开始。
+    compliance_time_constant: 0.03
     stiffness: [1490.0, 1490.0, 1490.0]
     force_deadband: [1.0, 1.0, 1.0]
     # 导纳方程允许使用最高 150 N 的每轴力值，但最大让位距离仍受 10 cm 限制。
@@ -43,7 +44,7 @@ admittance_controller:
     # max_compliance_offset: [0.05, 0.10, 0.03]
     # 数值越大，可让位距离越远，但更容易接近关节限位或不可达区域。
     max_compliance_offset: [0.10, 0.10, 0.10]
-    max_compliance_speed: [0.10, 0.10, 0.10]
+    max_compliance_speed: [0.20, 0.20, 0.20]
     # 单次关节命令最多变化 0.04 rad，避免 IK 分支切换导致腕部突然摆动。
     # 若仍有跳动可降到 0.02；若最后 5 cm 跟踪明显过慢，可增大到 0.06。
     max_joint_command_step: 0.04
@@ -54,7 +55,7 @@ admittance_controller:
     cartesian_position_gain: 2.0
     cartesian_orientation_gain: 2.0
     # TCP 跟踪目标时的最大线速度和角速度，单位分别为 m/s、rad/s。
-    max_cartesian_tracking_speed: 0.08
+    max_cartesian_tracking_speed: 0.15
     max_angular_tracking_speed: 0.30
     # 柔顺末段只平移，保持进入柔顺阶段时的末端姿态，避免腕部摆动。
     hold_orientation_during_compliance: true
