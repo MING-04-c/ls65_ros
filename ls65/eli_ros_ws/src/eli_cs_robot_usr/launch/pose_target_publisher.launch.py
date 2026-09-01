@@ -19,6 +19,7 @@ def generate_launch_description():
     parameters = [
         LaunchConfiguration("config_file"),
         {
+            "target_topic": LaunchConfiguration("target_topic"),
             "use_sim_time": LaunchConfiguration("use_sim_time"),
             "interactive_mode": LaunchConfiguration("interactive_input"),
             "execute_after_input": LaunchConfiguration("execute_after_input"),
@@ -51,6 +52,11 @@ def generate_launch_description():
             "config_file",
             default_value=default_config,
             description="YAML file containing one pose or Cartesian waypoints",
+        ),
+        DeclareLaunchArgument(
+            "target_topic",
+            default_value="/moveit_pose_executor/target_poses",
+            description="PoseArray topic receiving the published targets",
         ),
         DeclareLaunchArgument(
             "use_sim_time",

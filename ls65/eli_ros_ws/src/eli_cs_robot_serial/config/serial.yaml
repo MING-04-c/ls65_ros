@@ -1,0 +1,21 @@
+serial_node:
+  ros__parameters:
+    # USB 串口设备，例如 /dev/ttyUSB0 或 /dev/ttyACM0
+    device: /dev/ttyUSB0
+    # 常用波特率：9600、115200、230400、460800、921600
+    baudrate: 115200
+    # 读取线程按换行符分帧。设备每行一条数据时保持 true。
+    line_mode: true
+    # true 时发布收到的每一行（去掉末尾换行）到 text_topic。
+    publish_text: true
+    # 发送字符串、浮点数、整数时是否自动在末尾添加换行符。
+    append_newline: true
+    text_topic: /serial/rx
+    bytes_topic: /serial/rx_bytes
+    write_service: /serial/write
+    send_file_service: /serial/send_file
+    tx_string_topic: /serial/tx
+    tx_float_topic: /serial/tx_float
+    tx_int_topic: /serial/tx_int
+    # 串口打开失败时自动重连的周期，单位秒。
+    reconnect_period: 2.0
