@@ -4,7 +4,7 @@ from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, TimerAction
 from launch.conditions import IfCondition, UnlessCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, PythonExpression
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 
@@ -13,10 +13,8 @@ def generate_launch_description():
     use_simulation = LaunchConfiguration("use_simulation")
     cs_type = LaunchConfiguration("cs_type")
     launch_rviz = LaunchConfiguration("launch_rviz")
-    start_publisher = LaunchConfiguration("start_publisher")
-    interactive_input = LaunchConfiguration("interactive_input")
+    publisher_mode = LaunchConfiguration("publisher_mode")
     execute_after_input = LaunchConfiguration("execute_after_input")
-    execute_after_yaml = LaunchConfiguration("execute_after_yaml")
     angles_in_degrees = LaunchConfiguration("angles_in_degrees")
     config_package = LaunchConfiguration("config_package")
     config_file = LaunchConfiguration("config_file")
@@ -24,6 +22,10 @@ def generate_launch_description():
     initial_config_file = LaunchConfiguration("initial_config_file")
     velocity_scaling = LaunchConfiguration("velocity_scaling")
     acceleration_scaling = LaunchConfiguration("acceleration_scaling")
+
+    publisher_enabled = PythonExpression(["'", publisher_mode, "' != 'off'"])
+    interactive_publisher = PythonExpression(["'", publisher_mode, "' == 'interactive'"])
+    yaml_publisher = PythonExpression(["'", publisher_mode, "' == 'yaml'"])
 
     # config_file 使用 ROS 包 share/config 目录下的文件名。例如：
     #   config_package:=eli_cs_robot_usr
@@ -117,13 +119,13 @@ def generate_launch_description():
                 "pose_target_publisher.launch.py",
             ])
         ),
-        condition=IfCondition(start_publisher),
+        condition=IfCondition(publisher_enabled),
         launch_arguments={
             "use_sim_time": use_simulation,
             "config_file": resolved_config_file,
-            "interactive_input": interactive_input,
+            "interactive_input": interactive_publisher,
             "execute_after_input": execute_after_input,
-            "execute_after_yaml": execute_after_yaml,
+            "execute_after_yaml": yaml_publisher,
             "angles_in_degrees": angles_in_degrees,
         }.items(),
     )
@@ -148,14 +150,13 @@ def generate_launch_description():
             description="Launch RViz",
         ),
         DeclareLaunchArgument(
-            "start_publisher",
-            default_value="false",
-            description="Also start the configured pose target publisher",
-        ),
-        DeclareLaunchArgument(
-            "interactive_input",
-            default_value="false",
-            description="Read interactive x y z roll pitch yaw from the terminal",
+            "publisher_mode",
+            default_value="off",
+            choices=["off", "interactive", "yaml"],
+            description=(
+                "off: no pose publisher; interactive: terminal input; "
+                "yaml: publish and execute config_file"
+            ),
         ),
         DeclareLaunchArgument(
             "execute_after_input",
@@ -163,14 +164,9 @@ def generate_launch_description():
             description="Automatically execute each interactive pose",
         ),
         DeclareLaunchArgument(
-            "execute_after_yaml",
-            default_value="true",
-            description="Automatically execute the YAML target after publishing it",
-        ),
-        DeclareLaunchArgument(
             "angles_in_degrees",
             default_value="false",
-            description="Interpret interactive roll pitch yaw as degrees",
+            description="true is interpreted as degrees, false as radians",
         ),
         DeclareLaunchArgument(
             "config_package",
@@ -198,12 +194,12 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             "velocity_scaling",
-            default_value="1.0",
+            default_value="0.5",
             description="MoveIt nominal velocity scaling in the range (0, 1]",
         ),
         DeclareLaunchArgument(
             "acceleration_scaling",
-            default_value="1.0",
+            default_value="0.5",
             description="MoveIt nominal acceleration scaling in the range (0, 1]",
         ),
         simulation_launch,
