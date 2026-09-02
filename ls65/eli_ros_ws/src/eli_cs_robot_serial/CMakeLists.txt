@@ -9,6 +9,7 @@ find_package(ament_cmake REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
+find_package(geometry_msgs REQUIRED)
 
 rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/WriteSerial.srv"
@@ -17,7 +18,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
 
 add_executable(serial_node src/serial_node.cpp)
 target_compile_features(serial_node PUBLIC cxx_std_17)
-ament_target_dependencies(serial_node rclcpp std_msgs)
+ament_target_dependencies(serial_node rclcpp std_msgs geometry_msgs)
 rosidl_get_typesupport_target(cpp_typesupport_target ${PROJECT_NAME} "rosidl_typesupport_cpp")
 target_link_libraries(serial_node "${cpp_typesupport_target}")
 

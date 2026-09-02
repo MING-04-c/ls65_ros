@@ -2,6 +2,7 @@
 
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
+from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
@@ -41,10 +42,25 @@ def generate_launch_description():
             "angles_in_degrees": LaunchConfiguration("angles_in_degrees"),
         }.items(),
     )
+    serial = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(PathJoinSubstitution([
+            FindPackageShare("eli_cs_robot_serial"), "launch", "serial.launch.py"
+        ])),
+        launch_arguments={
+            "config_file": LaunchConfiguration("serial_config_file"),
+            "publish_wrench": "true",
+        }.items(),
+        condition=IfCondition(LaunchConfiguration("launch_serial")),
+    )
     return LaunchDescription([
         DeclareLaunchArgument("cs_type", default_value="ls65"),
         DeclareLaunchArgument("launch_rviz", default_value="true"),
         DeclareLaunchArgument("interactive_input", default_value="true"),
         DeclareLaunchArgument("angles_in_degrees", default_value="true"),
-        moveit, admittance, coordinator, publisher,
+        DeclareLaunchArgument("launch_serial", default_value="true"),
+        DeclareLaunchArgument(
+            "serial_config_file",
+            default_value="serial.yaml",
+        ),
+        moveit, serial, admittance, coordinator, publisher,
     ])
