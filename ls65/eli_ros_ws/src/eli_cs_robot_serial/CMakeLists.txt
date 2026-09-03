@@ -10,6 +10,7 @@ find_package(rosidl_default_generators REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
+find_package(std_srvs REQUIRED)
 
 rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/WriteSerial.srv"
@@ -27,15 +28,30 @@ target_compile_features(tcp_node PUBLIC cxx_std_17)
 ament_target_dependencies(tcp_node rclcpp std_msgs)
 target_link_libraries(tcp_node "${cpp_typesupport_target}")
 
+add_executable(detactor_node device/detactor/src/detactor_node.cpp)
+target_compile_features(detactor_node PUBLIC cxx_std_17)
+ament_target_dependencies(detactor_node rclcpp std_msgs std_srvs)
+target_link_libraries(detactor_node "${cpp_typesupport_target}")
+
+
 install(TARGETS serial_node
   DESTINATION lib/${PROJECT_NAME}
 )
 install(TARGETS tcp_node
   DESTINATION lib/${PROJECT_NAME}
 )
+install(TARGETS detactor_node
+  DESTINATION lib/${PROJECT_NAME}
+)
 
 install(DIRECTORY config launch
   DESTINATION share/${PROJECT_NAME}
+)
+install(DIRECTORY device/detactor/config/
+  DESTINATION share/${PROJECT_NAME}/device/detactor/config
+)
+install(FILES device/detactor/launch/detactor.launch.py
+  DESTINATION share/${PROJECT_NAME}/launch
 )
 
 ament_export_dependencies(rosidl_default_runtime)
