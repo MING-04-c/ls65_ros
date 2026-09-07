@@ -1,0 +1,23 @@
+sensor_node:
+  ros__parameters:
+    transport: tcp
+    host: 192.168.1.100
+    port: 4001
+    auto_start: true
+    zero_before_request: true
+    request_period: 0.0
+    command_delay_ms: 300
+    zero_wait_ms: 1000
+    unit_switch_delay_ms: 300
+    unit: "N"
+    baud_code: 0
+    publish_wrench: true
+    data_format: float32_be
+    data_offset: 3
+    frame_size: 29
+    frame_id: tool0
+    raw_topic: /sensor/rx_bytes
+    raw_rx_topic: /sensor/raw_rx_bytes
+    raw_rx_hex_topic: /sensor/raw_rx
+    hex_topic: /sensor/rx
+    wrench_topic: /sensor/wrench

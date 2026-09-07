@@ -33,6 +33,11 @@ target_compile_features(detactor_node PUBLIC cxx_std_17)
 ament_target_dependencies(detactor_node rclcpp std_msgs std_srvs)
 target_link_libraries(detactor_node "${cpp_typesupport_target}")
 
+add_executable(sensor_node device/sensor/src/sensor_node.cpp)
+target_compile_features(sensor_node PUBLIC cxx_std_17)
+ament_target_dependencies(sensor_node rclcpp std_msgs geometry_msgs std_srvs)
+target_link_libraries(sensor_node "${cpp_typesupport_target}")
+
 
 install(TARGETS serial_node
   DESTINATION lib/${PROJECT_NAME}
@@ -41,6 +46,9 @@ install(TARGETS tcp_node
   DESTINATION lib/${PROJECT_NAME}
 )
 install(TARGETS detactor_node
+  DESTINATION lib/${PROJECT_NAME}
+)
+install(TARGETS sensor_node
   DESTINATION lib/${PROJECT_NAME}
 )
 
@@ -52,6 +60,24 @@ install(DIRECTORY device/detactor/config/
 )
 install(FILES device/detactor/launch/detactor.launch.py
   DESTINATION share/${PROJECT_NAME}/launch
+)
+install(DIRECTORY device/sensor/config/
+  DESTINATION share/${PROJECT_NAME}/device/sensor/config
+)
+install(FILES device/sensor/README.md
+  DESTINATION share/${PROJECT_NAME}/device/sensor
+)
+install(DIRECTORY device/sensor/data/
+  DESTINATION share/${PROJECT_NAME}/device/sensor/data
+)
+install(FILES
+  device/sensor/launch/sensor_usb.launch.py
+  device/sensor/launch/sensor_tcp.launch.py
+  device/sensor/launch/sensor_plot.launch.py
+  DESTINATION share/${PROJECT_NAME}/launch
+)
+install(PROGRAMS device/sensor/src/sensor_plot.py
+  DESTINATION lib/${PROJECT_NAME}
 )
 
 ament_export_dependencies(rosidl_default_runtime)

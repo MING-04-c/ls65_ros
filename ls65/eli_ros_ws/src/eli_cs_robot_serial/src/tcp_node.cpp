@@ -61,32 +61,52 @@ private:
     if (server_ >= 0) { ::shutdown(server_, SHUT_RDWR); ::close(server_); server_ = -1; }
   }
 
-  void send_text(const std::string &value)
-  {
-    const auto data = append_newline_ && (value.empty() || value.back() != '\n') ? value + "\n" : value;
-    std::lock_guard<std::mutex> lock(mutex_);
-    if (client_ < 0) { RCLCPP_WARN_THROTTLE(get_logger(), *get_clock(), 5000, "TCP peer is not connected"); return; }
-    if (::send(client_, data.data(), data.size(), MSG_NOSIGNAL) != static_cast<ssize_t>(data.size())) {
-      RCLCPP_WARN(get_logger(), "TCP send failed");
-    }
-  }
+  void send_text(const std::string &value) {
+  // 处理换行符逻辑：如果开启了 append_newline_ 并且（字符串为空 或 最后一个字符不是 '\n'）
+  // 则在数据末尾补上 "\n"，否则直接使用原字符串。
+  const auto data = append_newline_ && (value.empty() || value.back() != '\n') ? value + "\n" : value;
+  
+  // 加锁，确保多线程下对 client_ 描述符和网络发送的操作是安全的
+  std::lock_guard<std::mutex> lock(mutex_);
+  
+  // 如果当前没有连接，记录一次警告（为了防刷屏，使用 THROTTLE 限制每 5000ms 也就是 5秒最多打印一次），并退出
+  if (client_ < 0) { RCLCPP_WARN_THROTTLE(get_logger(), *get_clock(), 5000, "TCP peer is not connected"); return; }
+  
+  // 调用底层 send 函数发送数据。MSG_NOSIGNAL 非常重要，它防止对端意外断开时系统抛出 SIGPIPE 导致程序直接崩溃。
+  // 比较实际发送的字节数是否等于我们要发送的数据长度
+  if (::send(client_, data.data(), data.size(), MSG_NOSIGNAL) != static_cast<ssize_t>(data.size())) {
+    // 如果不相等（发送失败或未发全），打印警告
+    RCLCPP_WARN(get_logger(), "TCP send failed");
+  }}
 
   void write_service(const std::shared_ptr<eli_cs_robot_serial::srv::WriteSerial::Request> &req,
-    const std::shared_ptr<eli_cs_robot_serial::srv::WriteSerial::Response> &res)
-  {
-    const auto data = append_newline_ && (req->data.empty() || req->data.back() != '\n') ? req->data + "\n" : req->data;
-    std::lock_guard<std::mutex> lock(mutex_);
-    if (client_ < 0) { res->success = false; res->message = "TCP peer is not connected"; return; }
-    const auto count = ::send(client_, data.data(), data.size(), MSG_NOSIGNAL);
-    res->success = count == static_cast<ssize_t>(data.size());
-    res->message = res->success ? "Written " + std::to_string(data.size()) + " bytes" : "TCP send failed";
+                   const std::shared_ptr<eli_cs_robot_serial::srv::WriteSerial::Response> &res) {
+  // 与 send_text 逻辑相同，处理传入请求 (req->data) 的尾部换行符
+  const auto data = append_newline_ && (req->data.empty() || req->data.back() != '\n') ? req->data + "\n" : req->data;
+  
+  std::lock_guard<std::mutex> lock(mutex_); // 加锁
+  
+  // 如果未连接，直接修改响应对象 (res) 的 success 为 false，并写明原因，结束处理
+  if (client_ < 0) { res->success = false; res->message = "TCP peer is not connected"; return; }
+  
+  // 尝试发送，并保存实际发送出去的字节数给 count
+  const auto count = ::send(client_, data.data(), data.size(), MSG_NOSIGNAL);
+  
+  // 判断服务是否成功：实际发送的字节数 == 预期需要发送的字节数
+  res->success = count == static_cast<ssize_t>(data.size());
+  
+  // 三目运算符设置响应提示信息：成功返回 "Written xxx bytes"，失败返回 "TCP send failed"
+  res->message = res->success ? "Written " + std::to_string(data.size()) + " bytes" : "TCP send failed";
   }
 
-  void publish(const std::vector<uint8_t> &data)
-  {
-    if (data.empty()) return;
-    std_msgs::msg::UInt8MultiArray bytes; bytes.data = data; bytes_pub_->publish(bytes);
-    std_msgs::msg::String text; text.data.assign(data.begin(), data.end()); text_pub_->publish(text);
+  void publish(const std::vector<uint8_t> &data) {
+  if (data.empty()) return; // 容错处理，如果数据为空直接返回
+  
+  // 构造 UInt8MultiArray（字节数组）消息，把接收到的二进制数据直接填入，并通过 bytes_pub_ 发布
+  std_msgs::msg::UInt8MultiArray bytes; bytes.data = data; bytes_pub_->publish(bytes);
+  
+  // 构造 String（文本）消息，利用迭代器将字节数据强制转换为 ASCII 字符串，并通过 text_pub_ 发布
+  std_msgs::msg::String text; text.data.assign(data.begin(), data.end()); text_pub_->publish(text);
   }
 
   void send_file(const std::shared_ptr<eli_cs_robot_serial::srv::SendFile::Request> &req,

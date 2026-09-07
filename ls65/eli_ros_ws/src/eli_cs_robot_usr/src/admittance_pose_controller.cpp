@@ -505,6 +505,18 @@ private:
       have_wrench_ = true;
     }
 
+    // 调试输出独立于目标位姿和导纳执行状态，收到传感器数据就持续发布。
+    geometry_msgs::msg::WrenchStamped measured_wrench;
+    measured_wrench.header.stamp = now();
+    measured_wrench.header.frame_id = base_frame_;
+    {
+      std::lock_guard<std::mutex> lock(data_mutex_);
+      measured_wrench.wrench.force.x = filtered_force_[0];
+      measured_wrench.wrench.force.y = filtered_force_[1];
+      measured_wrench.wrench.force.z = filtered_force_[2];
+    }
+    external_wrench_publisher_->publish(measured_wrench);
+
     // 控制循环由固定频率 timer 驱动；这里仅更新最新力值。
   }
 

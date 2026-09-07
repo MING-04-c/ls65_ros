@@ -64,6 +64,7 @@ public:
     eef_step_ = parameter_or<double>("cartesian_eef_step", 0.01);
     jump_threshold_ = parameter_or<double>("cartesian_jump_threshold", 0.0);
     min_cartesian_fraction_ = parameter_or<double>("cartesian_min_fraction", 0.95);
+    use_cartesian_path_ = parameter_or<bool>("use_cartesian_path", true);
 
     // 在执行末端目标之前，是否先让机械臂运动到指定的关节初始位姿。
     // 这个初始位姿使用弧度，六个数按照 MoveIt 规划组中的关节顺序排列。
@@ -347,6 +348,11 @@ private:
     move_group_->setPoseReferenceFrame(input_frame);
     move_group_->setStartStateToCurrentState();
 
+    if (!use_cartesian_path_ && target.poses.size() == 1) {
+      execute_pose_plan(target.poses.front(), response);
+      return;
+    }
+
     // 无论是一个目标点还是多个轨迹点，都使用笛卡尔路径。
     //
     // 单点时，computeCartesianPath() 会从机械臂当前的末端位姿开始，
@@ -356,6 +362,27 @@ private:
     // 多点时，机械臂会按 waypoints 的顺序逐段做笛卡尔插值。
     // 规划过程仍然会检查碰撞、关节限制和逆运动学是否有解。
     execute_cartesian_path(target.poses, response);
+  }
+
+  void execute_pose_plan(
+    const geometry_msgs::msg::Pose & pose,
+    std_srvs::srv::Trigger::Response::SharedPtr response)
+  {
+    move_group_->setPoseTarget(pose, end_effector_link_);
+    moveit::planning_interface::MoveGroupInterface::Plan plan;
+    const auto planning_result = move_group_->plan(plan);
+    if (planning_result != moveit::core::MoveItErrorCode::SUCCESS) {
+      response->success = false;
+      response->message = "MoveIt failed to plan the real-robot approach pose";
+      move_group_->clearPoseTargets();
+      return;
+    }
+    const auto execution_result = move_group_->execute(plan);
+    move_group_->clearPoseTargets();
+    response->success = execution_result == moveit::core::MoveItErrorCode::SUCCESS;
+    response->message = response->success ?
+      "MoveIt approach trajectory executed" :
+      "Controller failed to execute the approach trajectory";
   }
 
   void execute_cartesian_path(
@@ -433,6 +460,7 @@ private:
   double eef_step_;
   double jump_threshold_;
   double min_cartesian_fraction_;
+  bool use_cartesian_path_;
   bool initialize_before_execution_;
   bool initialize_on_startup_;
   double initial_joint_tolerance_;

@@ -27,6 +27,31 @@ def generate_launch_description():
                     PathJoinSubstitution([moveit_cfg, "config", "kinematics.yaml"]),
                     {"use_sim_time": False}],
     )
+    executor = Node(
+        package="eli_cs_robot_usr", executable="moveit_pose_executor",
+        name="moveit_pose_executor", output="screen",
+        parameters=[
+            PathJoinSubstitution([moveit_cfg, "config", "kinematics.yaml"]),
+            {
+                "planning_group": "cs_manipulator",
+                "end_effector_link": "tool0",
+                "reference_frame": "base_link",
+                "velocity_scaling": 0.10,
+                "acceleration_scaling": 0.10,
+                "planning_time": 5.0,
+                # 与 pose_execution_system.launch.py 一致：目标末端位姿使用
+                # MoveIt 的笛卡尔路径插值，避免单个 Pose 交给 OMPL/RRTConnect
+                # 后在关节空间绕远路。
+                "cartesian_eef_step": 0.01,
+                "cartesian_jump_threshold": 0.0,
+                "cartesian_min_fraction": 0.95,
+                "use_sim_time": False,
+                "initialize_on_startup": False,
+                "initialize_before_execution": False,
+                "use_cartesian_path": True,
+            },
+        ],
+    )
     coordinator = Node(
         package="eli_cs_robot_usr", executable="staged_pose_coordinator",
         name="staged_pose_coordinator", output="screen",
@@ -42,25 +67,27 @@ def generate_launch_description():
             "angles_in_degrees": LaunchConfiguration("angles_in_degrees"),
         }.items(),
     )
-    serial = IncludeLaunchDescription(
+    sensor = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(PathJoinSubstitution([
-            FindPackageShare("eli_cs_robot_serial"), "launch", "serial.launch.py"
+            FindPackageShare("eli_cs_robot_serial"), "launch", "sensor_usb.launch.py"
         ])),
         launch_arguments={
-            "config_file": LaunchConfiguration("serial_config_file"),
-            "publish_wrench": "true",
+            "config_file": LaunchConfiguration("sensor_config_file"),
         }.items(),
-        condition=IfCondition(LaunchConfiguration("launch_serial")),
+        condition=IfCondition(LaunchConfiguration("launch_sensor")),
     )
     return LaunchDescription([
         DeclareLaunchArgument("cs_type", default_value="ls65"),
         DeclareLaunchArgument("launch_rviz", default_value="true"),
         DeclareLaunchArgument("interactive_input", default_value="true"),
         DeclareLaunchArgument("angles_in_degrees", default_value="true"),
-        DeclareLaunchArgument("launch_serial", default_value="true"),
+        DeclareLaunchArgument("launch_sensor", default_value="true"),
         DeclareLaunchArgument(
-            "serial_config_file",
-            default_value="serial.yaml",
+            "sensor_config_file",
+            default_value=PathJoinSubstitution([
+                FindPackageShare("eli_cs_robot_serial"),
+                "device", "sensor", "config", "sensor_usb.yaml",
+            ]),
         ),
-        moveit, serial, admittance, coordinator, publisher,
+        moveit, sensor, executor, admittance, coordinator, publisher,
     ])

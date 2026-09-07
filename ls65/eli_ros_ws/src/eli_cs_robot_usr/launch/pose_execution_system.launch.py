@@ -22,6 +22,8 @@ def generate_launch_description():
     initial_config_file = LaunchConfiguration("initial_config_file")
     velocity_scaling = LaunchConfiguration("velocity_scaling")
     acceleration_scaling = LaunchConfiguration("acceleration_scaling")
+    initialize_on_startup = LaunchConfiguration("initialize_on_startup")
+    initialize_before_execution = LaunchConfiguration("initialize_before_execution")
 
     publisher_enabled = PythonExpression(["'", publisher_mode, "' != 'off'"])
     interactive_publisher = PythonExpression(["'", publisher_mode, "' == 'interactive'"])
@@ -107,6 +109,8 @@ def generate_launch_description():
                 "cartesian_jump_threshold": 0.0,
                 "cartesian_min_fraction": 0.95,
                 "use_sim_time": use_simulation,
+                "initialize_on_startup": initialize_on_startup,
+                "initialize_before_execution": initialize_before_execution,
             },
         ],
     )
@@ -201,6 +205,16 @@ def generate_launch_description():
             "acceleration_scaling",
             default_value="0.5",
             description="MoveIt nominal acceleration scaling in the range (0, 1]",
+        ),
+        DeclareLaunchArgument(
+            "initialize_on_startup",
+            default_value="true",
+            description="Move to initial_joint_pose when the executor starts",
+        ),
+        DeclareLaunchArgument(
+            "initialize_before_execution",
+            default_value="true",
+            description="Move to initial_joint_pose before each target",
         ),
         simulation_launch,
         real_moveit_launch,
