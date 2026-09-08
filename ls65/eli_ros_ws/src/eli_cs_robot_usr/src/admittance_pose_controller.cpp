@@ -963,7 +963,8 @@ private:
       get_logger(), *get_clock(), 1000,
       "tracking waypoint %zu/%zu: error=%.3f m, force=[%.2f %.2f %.2f] N, "
       "offset=[%.3f %.3f %.3f] m, max_joint_step=%.3f rad, overload_hold=%s, "
-      "limit_hold=%s, actual_xyz=[%.3f %.3f %.3f], target_xyz=[%.3f %.3f %.3f], "
+      "limit_hold=%s, actual_xyz=[%.3f %.3f %.3f], raw_target_xyz=[%.3f %.3f %.3f], "
+      "command_xyz=[%.3f %.3f %.3f], "
       "actual_rpy=[%.1f %.1f %.1f] deg, target_rpy=[%.1f %.1f %.1f] deg, "
       "output=%s, teach pendant scaling=%.1f%%",
       target_index_ + 1, targets_.size(), position_error_norm,
@@ -974,6 +975,8 @@ private:
       compliance_limit_hold_active_ ? "true" : "false",
       current_pose.position.x, current_pose.position.y, current_pose.position.z,
       target.position.x, target.position.y, target.position.z,
+      commanded_pose.pose.position.x, commanded_pose.pose.position.y,
+      commanded_pose.pose.position.z,
       current_roll * 180.0 / M_PI, current_pitch * 180.0 / M_PI,
       current_yaw * 180.0 / M_PI,
       target_roll * 180.0 / M_PI, target_pitch * 180.0 / M_PI,

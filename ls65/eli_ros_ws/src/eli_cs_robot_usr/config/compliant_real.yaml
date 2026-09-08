@@ -8,7 +8,8 @@ admittance_controller:
     wrench_topic: /sensor/wrench
     output_mode: trajectory
     joint_command_topic: /scaled_joint_trajectory_controller/joint_trajectory
-    trajectory_duration: 0.20
+    # 真机流式轨迹每个点的执行时间。过长会使 100 Hz 连续更新的目标滞后。
+    trajectory_duration: 0.06
     speed_scaling_topic: /speed_scaling_state_broadcaster/speed_scaling
     require_speed_scaling: true
     control_rate: 100.0
@@ -17,16 +18,20 @@ admittance_controller:
     # 真机初次调试也使用三轴柔顺，但偏移、速度和力限幅均比仿真更严格。
     compliant_axes: "xyz"
     # 真机同样使用无过冲的准静态柔顺 x=F/K；先用较慢时间常数调试。
-    compliance_time_constant: 0.30
-    stiffness: [500.0, 500.0, 500.0]
+    compliance_time_constant: 0.15
+    # 导纳位移先扣除 1.5 N 死区，再按 offset=(|F|-deadband)/stiffness 计算。
+    # 因此持续施加 200 N 时：(200-1.5)/1323.3 = 0.15 m，约产生 15 cm 位移。
+    stiffness: [1323.3, 1323.3, 1323.3]
     force_deadband: [1.5, 1.5, 1.5]
-    force_norm_limit: 30.0
-    # 真机保护阈值保持保守值。确认真实力传感器方向、工作空间和急停流程后，
-    # 才能在现场风险评估的基础上提高这个值。
-    overload_force_threshold: 30.0
+    # 合力先限制到 200 N；这个值必须大于等于下面的过载保护阈值。
+    force_norm_limit: 200.0
+    # 合力达到 200 N 后停止继续让位并保持当前位置，降到 3 N 以下后恢复。
+    overload_force_threshold: 200.0
     protection_release_force: 3.0
-    max_compliance_offset: [0.01, 0.01, 0.01]
-    max_compliance_speed: [0.005, 0.005, 0.005]
+    # 单轴最多让位 15 cm；需要更改时修改这里，单位是米。
+    max_compliance_offset: [0.15, 0.15, 0.15]
+    # 柔顺位移变化速度上限为 8 cm/s，单位是 m/s。
+    max_compliance_speed: [0.08, 0.08, 0.08]
     # 真机使用更小的单周期关节变化限制，先保证调试过程平稳。
     max_joint_command_step: 0.03
     hold_orientation_during_compliance: true

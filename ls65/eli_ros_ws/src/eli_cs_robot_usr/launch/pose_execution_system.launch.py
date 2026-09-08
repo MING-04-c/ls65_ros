@@ -6,6 +6,7 @@ from launch.conditions import IfCondition, UnlessCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, PythonExpression
 from launch_ros.actions import Node
+from launch_ros.parameter_descriptions import ParameterValue
 from launch_ros.substitutions import FindPackageShare
 
 
@@ -109,8 +110,10 @@ def generate_launch_description():
                 "cartesian_jump_threshold": 0.0,
                 "cartesian_min_fraction": 0.95,
                 "use_sim_time": use_simulation,
-                "initialize_on_startup": initialize_on_startup,
-                "initialize_before_execution": initialize_before_execution,
+                "initialize_on_startup": ParameterValue(
+                    initialize_on_startup, value_type=bool),
+                "initialize_before_execution": ParameterValue(
+                    initialize_before_execution, value_type=bool),
             },
         ],
     )
