@@ -12,7 +12,7 @@
 
 清零命令会返回多行校准结果，因此节点默认等待 1 秒后才发送 `02`。可通过 `zero_wait_ms` 调整。
 
-节点正常退出时依次发送 `AA 55 01 0D 0A`（停止采集）和 `AA 55 31 0D 0A`（退出 debug）。
+节点正常退出时依次发送 `AA 55 01 0D 0A`（停止采集）和 `AA 55 31 0D 0A`（退出 debug）。两条命令之间默认等待 1 秒，可通过 `stop_exit_delay_ms` 调整。
 
 ## ROS 接口
 
@@ -28,6 +28,11 @@
 - `/sensor/toggle_unit`：执行 `01 -> 35 -> 30 -> 02`，切换单位并重新开始采集。
 - `/sensor/set_baud`：发送 YAML 中 `baud_code` 指定的波特率切换命令。
 - `/sensor/write`：手动发送任意 HEX 命令。
+
+`/sensor/wrench.header.frame_id` 默认是 `force_sensor`，表示数值沿传感器自身
+XYZ 轴表达。若传感器相对机器人 `tool0` 有旋转，必须发布
+`tool0 -> force_sensor` 的固定 TF；不能只把 `frame_id` 改成 `tool0`，否则
+导纳控制的受力方向会错误。
 
 所有传感器协议命令都固定以 HEX 原始字节发送，不会追加换行或转换成 ASCII 文本。`AA 55 35 0D 0A` 不包含目标单位，因此只能表示“切换单位”。启动前应确认设备当前单位。
 `baud_code: 1` 已知代表 460800；代码保留 2、3，但使用前必须查设备手册。
@@ -45,6 +50,20 @@ TCP-RS485：
 ```bash
 ros2 launch eli_cs_robot_serial sensor_tcp.launch.py
 ```
+
+485 转网口设备应配置为 TCP Server，并将串口侧参数设置为设备要求的
+`460800 8N1`。ROS 节点作为 TCP Client 连接网口设备。IP 和端口可以在
+启动时直接覆盖：
+
+```bash
+ros2 launch eli_cs_robot_serial sensor_tcp.launch.py \
+  host:=192.168.1.100 \
+  port:=4001
+```
+
+连接成功后，TCP 与 USB 使用完全相同的原始十六进制命令、数据帧解析、
+ROS 话题和服务。TCP 断开后节点会自动重连，并在重连成功后重新执行
+`32 -> 30 -> 02` 启动流程。
 
 监听原始回包：
 

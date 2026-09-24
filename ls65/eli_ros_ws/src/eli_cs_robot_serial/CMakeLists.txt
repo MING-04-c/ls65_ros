@@ -70,11 +70,29 @@ install(FILES device/sensor/README.md
 install(DIRECTORY device/sensor/data/
   DESTINATION share/${PROJECT_NAME}/device/sensor/data
 )
+install(DIRECTORY device/computer_pi/config/
+  DESTINATION share/${PROJECT_NAME}/device/computer_pi/config
+)
 install(FILES
   device/sensor/launch/sensor_usb.launch.py
   device/sensor/launch/sensor_tcp.launch.py
   device/sensor/launch/sensor_plot.launch.py
   DESTINATION share/${PROJECT_NAME}/launch
+)
+install(FILES device/computer_pi/launch/computer_pi_tcp.launch.py
+  DESTINATION share/${PROJECT_NAME}/launch
+)
+install(FILES device/computer_pi/launch/computer_pi_camera_tcp.launch.py
+  DESTINATION share/${PROJECT_NAME}/launch
+)
+install(PROGRAMS device/computer_pi/src/camera_tcp_node.py
+  DESTINATION lib/${PROJECT_NAME}
+)
+install(PROGRAMS device/computer_pi/src/camera_viewer.py
+  DESTINATION lib/${PROJECT_NAME}
+)
+install(FILES device/computer_pi/README.md
+  DESTINATION share/${PROJECT_NAME}/device/computer_pi
 )
 install(PROGRAMS device/sensor/src/sensor_plot.py
   DESTINATION lib/${PROJECT_NAME}

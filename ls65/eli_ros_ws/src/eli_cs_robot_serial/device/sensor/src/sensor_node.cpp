@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <array>
 #include <atomic>
 #include <cerrno>
@@ -10,12 +11,15 @@
 #include <memory>
 #include <mutex>
 #include <netdb.h>
+#include <poll.h>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 #include <thread>
 #include <vector>
 #include <unistd.h>
 #include <sys/socket.h>
+#include <netinet/tcp.h>
 #include <termios.h>
 
 #include <rclcpp/rclcpp.hpp>
@@ -35,6 +39,9 @@ public:
     device_ = declare_parameter<std::string>("device", "/dev/ttyUSB0");
     host_ = declare_parameter<std::string>("host", "192.168.1.100");
     port_ = declare_parameter<int>("port", 4001);
+    reconnect_period_ms_ = declare_parameter<int>("reconnect_period_ms", 1000);
+    tcp_keepalive_ = declare_parameter<bool>("tcp_keepalive", true);
+    tcp_no_delay_ = declare_parameter<bool>("tcp_no_delay", true);
     baudrate_ = declare_parameter<int>("baudrate", 460800);
     data_bits_ = declare_parameter<int>("data_bits", 8);
     stop_bits_ = declare_parameter<int>("stop_bits", 1);
@@ -48,10 +55,18 @@ public:
     command_delay_ms_ = declare_parameter<int>("command_delay_ms", 300);
     zero_wait_ms_ = declare_parameter<int>("zero_wait_ms", 1000);
     unit_switch_delay_ms_ = declare_parameter<int>("unit_switch_delay_ms", 300);
+    stop_exit_delay_ms_ = declare_parameter<int>("stop_exit_delay_ms", 1000);
     auto_start_ = declare_parameter<bool>("auto_start", true);
     zero_before_request_ = declare_parameter<bool>("zero_before_request", true);
     unit_ = declare_parameter<std::string>("unit", "N");
     baud_code_ = declare_parameter<int>("baud_code", 0);
+
+    if (transport_ != "usb" && transport_ != "tcp") {
+      throw std::runtime_error("transport must be 'usb' or 'tcp'");
+    }
+    if (transport_ == "tcp" && (host_.empty() || port_ <= 0 || port_ > 65535)) {
+      throw std::runtime_error("TCP host must be non-empty and port must be in [1, 65535]");
+    }
 
     const auto raw_topic = declare_parameter<std::string>("raw_topic", "/sensor/rx_bytes");
     const auto raw_rx_topic = declare_parameter<std::string>("raw_rx_topic", "/sensor/raw_rx_bytes");
@@ -88,8 +103,15 @@ public:
       timer_ = create_wall_timer(std::chrono::duration_cast<std::chrono::milliseconds>(
         std::chrono::duration<double>(request_period_)), [this]() { request_once(); });
     }
-    RCLCPP_INFO(get_logger(), "Sensor ready: transport=%s, unit=%s, raw=%s",
-      transport_.c_str(), unit_.c_str(), raw_topic.c_str());
+    if (transport_ == "tcp") {
+      RCLCPP_INFO(
+        get_logger(), "Sensor ready: transport=tcp, endpoint=%s:%d, unit=%s, raw=%s",
+        host_.c_str(), port_, unit_.c_str(), raw_topic.c_str());
+    } else {
+      RCLCPP_INFO(
+        get_logger(), "Sensor ready: transport=usb, device=%s @ %d, unit=%s, raw=%s",
+        device_.c_str(), baudrate_, unit_.c_str(), raw_topic.c_str());
+    }
   }
 
   ~SensorNode() override
@@ -104,7 +126,7 @@ public:
     // 协议规定：先停止采集，再退出 debug，最后释放串口。
     RCLCPP_INFO(get_logger(), "Stopping sensor: stop acquisition, then exit debug");
     send_command(acquisition_stop_command());
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    std::this_thread::sleep_for(std::chrono::milliseconds(stop_exit_delay_ms_));
     send_command(debug_exit_command());
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
     running_ = false;
@@ -147,6 +169,14 @@ private:
       int fd = -1;
       for (auto *entry = result; entry; entry = entry->ai_next) { fd = socket(entry->ai_family, entry->ai_socktype, entry->ai_protocol); if (fd >= 0 && connect(fd, entry->ai_addr, entry->ai_addrlen) == 0) break; if (fd >= 0) close(fd); fd = -1; }
       freeaddrinfo(result); if (fd < 0) return false;
+      if (tcp_keepalive_) {
+        int enabled = 1;
+        setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, &enabled, sizeof(enabled));
+      }
+      if (tcp_no_delay_) {
+        int enabled = 1;
+        setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, &enabled, sizeof(enabled));
+      }
       fcntl(fd, F_SETFL, O_NONBLOCK); std::lock_guard<std::mutex> lock(mutex_); fd_ = fd; return true;
     }
     const auto baud = speed(baudrate_); if (!baud) { RCLCPP_ERROR(get_logger(), "Unsupported baudrate: %d", baudrate_); return false; }
@@ -161,10 +191,26 @@ private:
     if (command.empty()) return false;
     std::lock_guard<std::mutex> lock(mutex_);
     if (fd_ < 0) return false;
-    const auto written = write(fd_, command.data(), command.size());
-    if (written != static_cast<ssize_t>(command.size())) {
-      RCLCPP_WARN(get_logger(), "Sensor TX failed: [%s], wrote %zd/%zu bytes: %s",
-        hex_string(command).c_str(), written, command.size(), std::strerror(errno));
+    size_t total = 0;
+    while (total < command.size()) {
+      ssize_t written = -1;
+      if (transport_ == "tcp") {
+        written = ::send(
+          fd_, command.data() + total, command.size() - total, MSG_NOSIGNAL);
+      } else {
+        written = ::write(fd_, command.data() + total, command.size() - total);
+      }
+      if (written > 0) {
+        total += static_cast<size_t>(written);
+        continue;
+      }
+      if (written < 0 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
+        pollfd descriptor{fd_, POLLOUT, 0};
+        if (::poll(&descriptor, 1, 500) > 0) continue;
+      }
+      RCLCPP_WARN(
+        get_logger(), "Sensor TX failed: [%s], wrote %zu/%zu bytes: %s",
+        hex_string(command).c_str(), total, command.size(), std::strerror(errno));
       return false;
     }
     if (transport_ == "usb") tcdrain(fd_);
@@ -193,7 +239,7 @@ private:
   {
     streaming_ = false;
     const bool acquisition_stopped = send_command(acquisition_stop_command());
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    std::this_thread::sleep_for(std::chrono::milliseconds(stop_exit_delay_ms_));
     const bool debug_stopped = send_command(debug_exit_command());
     return acquisition_stopped && debug_stopped;
   }
@@ -336,7 +382,8 @@ private:
 
   void extract_frames()
   {
-    constexpr size_t frame_length = 29;
+    const size_t frame_length = static_cast<size_t>(frame_size_);
+    if (frame_length < 29) return;
     static constexpr std::array<uint8_t, 2> frame_header{0xAA, 0x55};
     while (true) {
       const auto start = std::search(frame_buffer_.begin(), frame_buffer_.end(),
@@ -351,7 +398,9 @@ private:
         frame_buffer_.erase(frame_buffer_.begin());
         continue;
       }
-      if (frame_buffer_[27] != 0x0D || frame_buffer_[28] != 0x0A) {
+      if (frame_buffer_[frame_length - 2] != 0x0D ||
+        frame_buffer_[frame_length - 1] != 0x0A)
+      {
         frame_buffer_.erase(frame_buffer_.begin());
         continue;
       }
@@ -371,15 +420,40 @@ private:
         extract_ascii_lines(buffer.data(), static_cast<size_t>(count));
         frame_buffer_.insert(frame_buffer_.end(), buffer.begin(), buffer.begin() + count);
         extract_frames();
-      } else if (!connected || (count < 0 && errno != EAGAIN && errno != EWOULDBLOCK)) { close_connection(); if (open_connection()) { RCLCPP_INFO(get_logger(), "Sensor connection opened"); if (auto_start_) start_stream(); } else std::this_thread::sleep_for(std::chrono::milliseconds(500)); }
+      } else if (!connected ||
+        (transport_ == "tcp" && count == 0) ||
+        (count < 0 && errno != EAGAIN && errno != EWOULDBLOCK))
+      {
+        if (connected) {
+          RCLCPP_WARN(get_logger(), "Sensor connection lost; reconnecting");
+        }
+        streaming_ = false;
+        frame_buffer_.clear();
+        ascii_buffer_.clear();
+        close_connection();
+        if (running_ && open_connection()) {
+          RCLCPP_INFO(get_logger(), "Sensor connection opened");
+          if (auto_start_) start_stream();
+        } else if (running_) {
+          RCLCPP_WARN_THROTTLE(
+            get_logger(), *get_clock(), 5000,
+            "Cannot connect to sensor endpoint %s:%d",
+            transport_ == "tcp" ? host_.c_str() : device_.c_str(),
+            transport_ == "tcp" ? port_ : baudrate_);
+          std::this_thread::sleep_for(
+            std::chrono::milliseconds(std::max(100, reconnect_period_ms_)));
+        }
+      }
       else std::this_thread::sleep_for(std::chrono::milliseconds(2));
     }
   }
 
   std::string transport_, device_, host_, parity_, frame_id_, data_format_, unit_;
-  int port_, baudrate_, data_bits_, stop_bits_, data_offset_, frame_size_, baud_code_;
-  int command_delay_ms_, zero_wait_ms_, unit_switch_delay_ms_;
-  double request_period_; bool publish_wrench_, auto_start_, zero_before_request_;
+  int port_, reconnect_period_ms_, baudrate_, data_bits_, stop_bits_, data_offset_,
+    frame_size_, baud_code_;
+  int command_delay_ms_, zero_wait_ms_, unit_switch_delay_ms_, stop_exit_delay_ms_;
+  double request_period_;
+  bool tcp_keepalive_, tcp_no_delay_, publish_wrench_, auto_start_, zero_before_request_;
   int fd_{-1}; std::atomic<bool> running_{true}, streaming_{false}, shutdown_started_{false}; std::mutex mutex_; std::thread reader_; rclcpp::TimerBase::SharedPtr timer_;
   std::vector<uint8_t> frame_buffer_;
   std::string ascii_buffer_;

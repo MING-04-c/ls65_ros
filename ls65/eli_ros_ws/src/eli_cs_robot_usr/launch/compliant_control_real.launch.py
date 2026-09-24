@@ -69,12 +69,31 @@ def generate_launch_description():
     )
     sensor = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(PathJoinSubstitution([
-            FindPackageShare("eli_cs_robot_serial"), "launch", "sensor_usb.launch.py"
+            FindPackageShare("eli_cs_robot_serial"), "launch", "sensor_tcp.launch.py"
         ])),
         launch_arguments={
             "config_file": LaunchConfiguration("sensor_config_file"),
+            "host": LaunchConfiguration("sensor_host"),
+            "port": LaunchConfiguration("sensor_port"),
+            "frame_id": "force_sensor",
         }.items(),
         condition=IfCondition(LaunchConfiguration("launch_sensor")),
+    )
+    sensor_mount_tf = Node(
+        package="tf2_ros",
+        executable="static_transform_publisher",
+        name="force_sensor_mount_tf",
+        output="screen",
+        arguments=[
+            "--x", LaunchConfiguration("sensor_x"),
+            "--y", LaunchConfiguration("sensor_y"),
+            "--z", LaunchConfiguration("sensor_z"),
+            "--roll", LaunchConfiguration("sensor_roll"),
+            "--pitch", LaunchConfiguration("sensor_pitch"),
+            "--yaw", LaunchConfiguration("sensor_yaw"),
+            "--frame-id", "tool0",
+            "--child-frame-id", "force_sensor",
+        ],
     )
     return LaunchDescription([
         DeclareLaunchArgument("cs_type", default_value="ls65"),
@@ -82,12 +101,22 @@ def generate_launch_description():
         DeclareLaunchArgument("interactive_input", default_value="true"),
         DeclareLaunchArgument("angles_in_degrees", default_value="true"),
         DeclareLaunchArgument("launch_sensor", default_value="true"),
+        DeclareLaunchArgument("sensor_host", default_value="169.254.199.80"),
+        DeclareLaunchArgument("sensor_port", default_value="9001"),
+        # force_sensor 原点/轴系在 tool0 中的固定安装位姿；角度单位为弧度。
+        DeclareLaunchArgument("sensor_x", default_value="0.0"),
+        DeclareLaunchArgument("sensor_y", default_value="0.0"),
+        DeclareLaunchArgument("sensor_z", default_value="0.0"),
+        DeclareLaunchArgument("sensor_roll", default_value="0.0"),
+        DeclareLaunchArgument("sensor_pitch", default_value="0.0"),
+        # Sensor +X points along tool0 +Y, and sensor -Y points along tool0 +X.
+        DeclareLaunchArgument("sensor_yaw", default_value="1.5707963267948966"),
         DeclareLaunchArgument(
             "sensor_config_file",
             default_value=PathJoinSubstitution([
                 FindPackageShare("eli_cs_robot_serial"),
-                "device", "sensor", "config", "sensor_usb.yaml",
+                "device", "sensor", "config", "sensor_tcp.yaml",
             ]),
         ),
-        moveit, sensor, executor, admittance, coordinator, publisher,
+        moveit, sensor_mount_tf, sensor, executor, admittance, coordinator, publisher,
     ])
