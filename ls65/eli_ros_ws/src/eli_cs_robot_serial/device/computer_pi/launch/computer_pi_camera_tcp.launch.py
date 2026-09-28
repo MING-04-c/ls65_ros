@@ -1,6 +1,5 @@
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
-from launch.conditions import IfCondition
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 from launch_ros.parameter_descriptions import ParameterValue
@@ -15,9 +14,20 @@ def generate_launch_description():
             "compressed_topic", default_value="/computer_pi/camera/image/compressed"
         ),
         DeclareLaunchArgument(
+            "image_topic", default_value="/computer_pi/camera/image"
+        ),
+        DeclareLaunchArgument(
+            "capture_service", default_value="/computer_pi/camera/capture"
+        ),
+        DeclareLaunchArgument(
+            "snapshot_directory",
+            default_value="/home/robot/Pictures/computer_pi_camera",
+        ),
+        DeclareLaunchArgument(
             "latest_file", default_value="/tmp/computer_pi_camera/latest.jpg"
         ),
         DeclareLaunchArgument("reconnect_period", default_value="2.0"),
+        DeclareLaunchArgument("jpeg_quality", default_value="85"),
         DeclareLaunchArgument("show_image", default_value="true"),
     ]
     receiver = Node(
@@ -34,16 +44,26 @@ def generate_launch_description():
             "reconnect_period": ParameterValue(
                 LaunchConfiguration("reconnect_period"), value_type=float
             ),
+            "jpeg_quality": ParameterValue(
+                LaunchConfiguration("jpeg_quality"), value_type=int
+            ),
         }],
     )
-    viewer = Node(
+    image_bridge = Node(
         package="eli_cs_robot_serial",
         executable="camera_viewer.py",
         name="computer_pi_camera_viewer",
         output="screen",
-        condition=IfCondition(LaunchConfiguration("show_image")),
         parameters=[{
             "compressed_topic": LaunchConfiguration("compressed_topic"),
+            "image_topic": LaunchConfiguration("image_topic"),
+            "capture_service": LaunchConfiguration("capture_service"),
+            "snapshot_directory": ParameterValue(
+                LaunchConfiguration("snapshot_directory"), value_type=str
+            ),
+            "show_image": ParameterValue(
+                LaunchConfiguration("show_image"), value_type=bool
+            ),
         }],
     )
-    return LaunchDescription(arguments + [receiver, viewer])
+    return LaunchDescription(arguments + [receiver, image_bridge])

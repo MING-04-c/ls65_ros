@@ -61,7 +61,7 @@ ros2 service call /computer_pi/send_file \
 TCP is a byte stream and does not preserve message boundaries. Both computers
 must use the same text delimiter or application-level binary frame format.
 
-## Camera JPEG stream (MASC Camera TCP Protocol v1)
+## Camera stream (MASC Camera TCP Protocol v1/v2)
 
 The camera stream is independent of the text/debug connection on port 9001.
 The camera computer runs `hik_camera_ros2_driver` and
@@ -73,24 +73,54 @@ on its Ethernet interface because the server accepts only that source IP.
 ros2 launch eli_cs_robot_serial computer_pi_camera_tcp.launch.py
 ```
 
-The launch command also opens a live camera window. Press `q` or `Esc` to
-close the window. On a headless machine, use `show_image:=false`.
+The launch command also opens a live camera window. It displays the measured
+receive FPS, accumulated frame count, image size, and source encoding. Press
+`q` or `Esc` to close the window. On a headless machine, use
+`show_image:=false`.
 
-The receiver reconnects after a disconnect. It publishes JPEG data as
+Protocol v1 carries JPEG frames. Protocol v2 carries exact ROS Image bytes
+using the header fields `encoding`, `width`, `height`, `step`, and
+`is_bigendian`. The receiver supports raw `rgb8`, `bgr8`, `rgba8`, `bgra8`,
+`mono8`, `mono16`/`16UC1`, and common 8-bit Bayer frames. It converts raw
+pixels to JPEG locally, reconnects after a disconnect, and publishes the JPEG as
 `sensor_msgs/msg/CompressedImage` on
 `/computer_pi/camera/image/compressed`, preserving the source frame ID and
 timestamp. The latest JPEG and its JSON header are atomically saved to
 `/tmp/computer_pi_camera/latest.jpg` and `latest.json`. The files are
 overwritten on each frame. Set `latest_file:=''` to disable file output.
 
+## ROS image topic and snapshot service
+
+The image bridge republishes each decoded frame as
+`sensor_msgs/msg/Image` with `bgr8` encoding on
+`/computer_pi/camera/image`. It only copies the full raw image while that
+topic has subscribers. The JPEG stream remains available on
+`/computer_pi/camera/image/compressed`.
+
+Save the latest received frame by calling:
+
+```bash
+ros2 service call /computer_pi/camera/capture std_srvs/srv/Trigger "{}"
+```
+
+A successful response contains the saved JPEG path. Files are named with the
+capture time and are written to
+`/home/robot/Pictures/computer_pi_camera` by default. The image topic and
+capture service remain active when the launch argument `show_image:=false`
+disables the window.
+
 The launch arguments `host`, `port`, `local_ip`, `compressed_topic`,
-`latest_file`, and `reconnect_period` can be overridden. For example:
+`image_topic`, `capture_service`, `snapshot_directory`, `latest_file`,
+`reconnect_period`, `jpeg_quality`, and `show_image` can be overridden. For example:
 
 ```bash
 ros2 launch eli_cs_robot_serial computer_pi_camera_tcp.launch.py \
   host:=169.254.199.100 port:=9002 local_ip:=169.254.199.250
 ```
 
-The receiver validates the MIMG magic, protocol version, JSON header,
-JPEG format, and length limits (64 KiB header, 32 MiB image). It reads
+For raw data, the sender must use protocol `version: 2` and put the ROS
+image encoding directly in `encoding`, for example `"encoding": "rgb8"`.
+The payload length must equal `step * height`. The receiver validates the MIMG
+magic, protocol version, JSON header, dimensions, byte order, row stride,
+payload size, and length limits (64 KiB header, 128 MiB raw image). It reads
 each field to completion because TCP does not preserve frame boundaries.

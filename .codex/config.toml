@@ -1,0 +1,6 @@
+sandbox_mode = "danger-full-access"
+[projects."/home/robot/project/ls65_ros"]
+trust_level = "trusted"
+
+[projects."/home/robot/project/ls65_ros/ls65/eli_ros_ws"]
+trust_level = "trusted"
