@@ -1,0 +1,30 @@
+workflow:
+  name: agv_motion_test
+  auto_start: true
+  task_table: chassis_tasks.yaml
+
+  # Execute each AGV task only after the previous task reports completed.
+  steps:
+    - action: chassis_execute
+      task: forward_10cm
+    - action: wait_chassis
+      task: forward_10cm
+      require_running: true
+
+    - action: delay
+      seconds: 1.0
+
+    - action: chassis_execute
+      task: left_10cm
+    - action: wait_chassis
+      task: left_10cm
+      require_running: true
+
+    - action: delay
+      seconds: 1.0
+
+    - action: chassis_execute
+      task: backward_10cm
+    - action: wait_chassis
+      task: backward_10cm
+      require_running: true

@@ -15,6 +15,7 @@ find_package(std_srvs REQUIRED)
 rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/WriteSerial.srv"
   "srv/SendFile.srv"
+  "srv/ChassisControl.srv"
 )
 
 add_executable(serial_node src/serial_node.cpp)
@@ -85,13 +86,21 @@ install(FILES device/computer_pi/launch/computer_pi_tcp.launch.py
 install(FILES device/computer_pi/launch/computer_pi_camera_tcp.launch.py
   DESTINATION share/${PROJECT_NAME}/launch
 )
+install(FILES device/computer_pi/launch/computer_pi.launch.py
+  DESTINATION share/${PROJECT_NAME}/launch
+)
 install(PROGRAMS device/computer_pi/src/camera_tcp_node.py
   DESTINATION lib/${PROJECT_NAME}
 )
 install(PROGRAMS device/computer_pi/src/camera_viewer.py
   DESTINATION lib/${PROJECT_NAME}
 )
-install(FILES device/computer_pi/README.md
+install(PROGRAMS device/computer_pi/src/computer_pi_status_node.py
+  DESTINATION lib/${PROJECT_NAME}
+)
+install(FILES
+  device/computer_pi/README.md
+  device/computer_pi/COMMUNICATION_PROTOCOL.md
   DESTINATION share/${PROJECT_NAME}/device/computer_pi
 )
 install(PROGRAMS device/sensor/src/sensor_plot.py

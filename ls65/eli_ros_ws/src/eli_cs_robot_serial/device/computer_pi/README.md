@@ -4,6 +4,38 @@ The Raspberry Pi is expected to run a TCP server at `169.254.199.100:9001`.
 This ROS 2 node runs as a TCP client and reconnects automatically after a
 connection failure.
 
+## Unified start
+
+Start the status connection on port 9001, the camera receiver on port 9002,
+the ROS image bridge, snapshot service, and live image window together:
+
+```bash
+cd ~/project/ls65_ros/ls65/eli_ros_ws
+source /opt/ros/humble/setup.bash
+source install/setup.bash
+
+ros2 launch eli_cs_robot_serial computer_pi.launch.py
+```
+
+The image window is enabled by default. Use `show_image:=false` when running
+without a desktop. `enable_status:=false` and `enable_camera:=false` can disable
+either connection independently.
+
+The status protocol is exposed as these topics:
+
+- `/computer_pi/status`: latest task or connection status as JSON
+- `/computer_pi/online`: connection availability as `std_msgs/msg/Bool`
+- `/computer_pi/camera_info`: latest camera information message
+- `/computer_pi/chassis_status`: chassis task status messages
+- `/computer_pi/robot_status`: robot task status messages
+
+Task states are `0=idle`, `1=running`, `2=completed`, `3=error`, and
+`4=offline`. The initial state is offline. After a valid protocol message the
+state becomes online; if no valid message is received for 3 seconds, the node
+publishes state 4 again. The timeout can be changed with
+`offline_timeout:=SECONDS`. The node sends a heartbeat every second and
+automatically acknowledges completed and error events using their `event_id`.
+
 ## Start
 
 ```bash
@@ -124,3 +156,50 @@ The payload length must equal `step * height`. The receiver validates the MIMG
 magic, protocol version, JSON header, dimensions, byte order, row stride,
 payload size, and length limits (64 KiB header, 128 MiB raw image). It reads
 each field to completion because TCP does not preserve frame boundaries.
+
+## Chassis arrival and control
+
+This computer acts as the supervisor on the status connection. It receives the
+chassis status and sends control commands to the chassis side.
+
+Watch the complete chassis status or only its arrival flag:
+
+```bash
+ros2 topic echo /computer_pi/chassis_status
+ros2 topic echo /computer_pi/chassis_arrived
+```
+
+`/computer_pi/chassis_arrived` is true only when the latest chassis status is
+`completed`. It changes to false for other states and when the peer is offline.
+Completed and error chassis states are acknowledged automatically using their
+`event_id`.
+
+Send chassis commands:
+
+```bash
+# Continue
+ros2 service call /computer_pi/chassis/control \
+  eli_cs_robot_serial/srv/ChassisControl "{command: 0, task: ''}"
+
+# Stop
+ros2 service call /computer_pi/chassis/control \
+  eli_cs_robot_serial/srv/ChassisControl "{command: 1, task: ''}"
+
+# Execute a task
+ros2 service call /computer_pi/chassis/control \
+  eli_cs_robot_serial/srv/ChassisControl "{command: 2, task: 'forward_10cm'}"
+```
+
+Command values are `0=continue`, `1=stop`, and `2=execute_task`. Calls fail while
+the status connection is offline. Unacknowledged commands are resent every 500 ms.
+
+The control command is an extension to protocol v1 and is sent as one NDJSON
+line. The server on `169.254.199.100:9001` must handle this layout:
+
+```json
+{"version":1,"type":"control_command","sequence":20,"timestamp_ns":1790593050000000000,"source":"supervisor","event_id":"control-abc123","command":"continue"}
+{"version":1,"type":"control_command","sequence":21,"timestamp_ns":1790593051000000000,"source":"supervisor","event_id":"control-def456","command":"stop"}
+{"version":1,"type":"control_command","sequence":22,"timestamp_ns":1790593052000000000,"source":"supervisor","event_id":"control-ghi789","command":"execute_task","task":"forward_10cm"}
+```
+
+The complete peer implementation contract is in `COMMUNICATION_PROTOCOL.md`.
