@@ -14,6 +14,7 @@
 #include <algorithm>
 #include <array>
 #include <chrono>
+#include <csignal>
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
@@ -22,6 +23,7 @@
 #include <mutex>
 #include <stdexcept>
 #include <string>
+#include <thread>
 #include <utility>
 #include <vector>
 
@@ -43,6 +45,13 @@
 #include <tf2/LinearMath/Vector3.h>
 #include <tf2_ros/buffer.h>
 #include <tf2_ros/transform_listener.h>
+#include "joint_step_limit.hpp"
+
+namespace
+{
+volatile std::sig_atomic_t exit_requested = 0;
+void request_exit(int) { exit_requested = 1; }
+}  // namespace
 
 class AdmittancePoseController : public rclcpp::Node
 {
@@ -81,6 +90,8 @@ public:
     // 这条路径不会向 Gazebo 连杆施加物理 wrench，因此能单独验证“力 -> TCP
     // 让位”的算法；sensor 模式仍读取真实 F/T 传感器。
     force_source_ = declare_parameter<std::string>("force_source", "sensor");
+    enabled_ = declare_parameter<bool>("enabled_on_startup", true);
+    log_force_direction_ = declare_parameter<bool>("log_force_direction", false);
 
     // 控制器以这个固定频率运行。力回调只缓存最新测量值，不能直接驱动 IK 和
     // 轨迹发布，否则传感器频率抖动会直接变成关节命令抖动。
@@ -92,6 +103,13 @@ public:
     // 准静态柔顺参数，三个数组的顺序均为 [x, y, z]。K 是笛卡尔刚度，
     // 单位 N/m；稳态偏移为 x=F/K。
     stiffness_ = read_xyz_parameter("stiffness", {250.0, 250.0, 250.0});
+    // 基座坐标系下的导纳响应方向，独立于传感器安装 TF。
+    compliance_force_sign_ = read_xyz_parameter("compliance_force_sign", {1.0, 1.0, 1.0});
+    for (const auto sign : compliance_force_sign_) {
+      if (sign != -1.0 && sign != 1.0) {
+        throw std::runtime_error("compliance_force_sign entries must be -1 or +1");
+      }
+    }
     force_deadband_ = read_xyz_parameter("force_deadband", {0.5, 0.5, 0.5});
     compliance_limit_release_force_ = declare_parameter<double>(
       "compliance_limit_release_force", 0.5);
@@ -110,6 +128,12 @@ public:
     // 突然跳动。单位为 rad；<= 0 表示关闭这项限制。
     max_joint_command_step_ = declare_parameter<double>(
       "max_joint_command_step", 0.08);
+    wrist_warning_limit_deg_ = declare_parameter<double>("wrist_warning_limit_deg", 270.0);
+    if (!std::isfinite(wrist_warning_limit_deg_) || wrist_warning_limit_deg_ <= 0.0 ||
+      wrist_warning_limit_deg_ > 360.0)
+    {
+      throw std::runtime_error("wrist_warning_limit_deg must be within (0, 360]");
+    }
 
     // 导纳末段优先使用微分 IK：根据当前 TCP 到柔顺目标之间的小误差，通过
     // Jacobian 计算下一小步关节角。它始终从当前姿态连续前进，不会像完整 IK
@@ -235,9 +259,41 @@ public:
           // 协调器在开始一个新 MoveIt 目标前会先关闭导纳。此时旧目标产生的
           // 位移限位/过载保持必须解除，否则规划完成后新目标仍会被旧保持点覆盖。
           overload_hold_active_ = false;
+          if (!stop_output()) {
+            response->success = false;
+            response->message = "admittance disabled, but stop hold failed: joint state is stale";
+            return;
+          }
         }
         response->success = true;
         response->message = enabled_ ? "admittance control enabled" : "admittance control disabled";
+        RCLCPP_INFO(get_logger(), "Admittance output %s", enabled_ ? "enabled" : "disabled");
+      });
+
+    hold_current_service_ = create_service<std_srvs::srv::Trigger>(
+      "~/hold_current_pose",
+      [this](
+        const std_srvs::srv::Trigger::Request::SharedPtr,
+        std_srvs::srv::Trigger::Response::SharedPtr response)
+      {
+        try {
+          const auto current = tf_buffer_.lookupTransform(
+            base_frame_, end_effector_frame_, tf2::TimePointZero);
+          geometry_msgs::msg::Pose pose;
+          pose.position.x = current.transform.translation.x;
+          pose.position.y = current.transform.translation.y;
+          pose.position.z = current.transform.translation.z;
+          pose.orientation = current.transform.rotation;
+          set_targets({pose});
+          enabled_ = true;
+          response->success = true;
+          response->message = "Current TCP pose captured; admittance enabled";
+          RCLCPP_INFO(get_logger(), "Admittance enabled at current TCP [%.3f %.3f %.3f] m",
+            pose.position.x, pose.position.y, pose.position.z);
+        } catch (const tf2::TransformException & error) {
+          response->success = false;
+          response->message = error.what();
+        }
       });
 
     tare_service_ = create_service<std_srvs::srv::Trigger>(
@@ -258,6 +314,9 @@ public:
       get_fully_qualified_name(), wrench_topic_.c_str(), compliant_axes.c_str());
     RCLCPP_INFO(
       get_logger(), "Force source: %s", force_source_.c_str());
+    RCLCPP_INFO(
+      get_logger(), "Admittance output on startup: %s",
+      enabled_ ? "enabled (requires a target)" : "disabled (waiting for enable service)");
     RCLCPP_INFO(
       get_logger(),
       "Keep the tool unloaded while collecting the first %zu force samples",
@@ -286,11 +345,62 @@ public:
     RCLCPP_INFO(
       get_logger(), "Compliant kinematics: %s",
       use_differential_ik_ ? "damped differential IK" : "full-pose IK");
+    RCLCPP_INFO(get_logger(), "Compliance force signs in %s: [%.0f %.0f %.0f]",
+      base_frame_.c_str(), compliance_force_sign_[0], compliance_force_sign_[1],
+      compliance_force_sign_[2]);
     RCLCPP_INFO(
       get_logger(),
       "Quasi-static compliance enabled: x=F/K, time constant=%.3f s; "
       "K=[%.1f %.1f %.1f] N/m",
       compliance_time_constant_, stiffness_[0], stiffness_[1], stiffness_[2]);
+  }
+
+  // 在 ROS context 仍有效时覆盖最后一个领先实际位置的轨迹点。
+  // 禁用导纳也走此路径，避免停发消息后底层继续追赶最后的 IK 目标。
+  bool stop_output()
+  {
+    enabled_ = false;
+    reset_admittance_state();
+    if (!have_commanded_) {
+      return true;  // 本节点没有在控制机器人，不覆盖其他控制源。
+    }
+    std::array<double, 6> positions{};
+    {
+      std::lock_guard<std::mutex> lock(joint_state_mutex_);
+      if (!have_joint_state_ ||
+        std::chrono::steady_clock::now() - last_joint_state_received_ >
+        std::chrono::milliseconds(250))
+      {
+        RCLCPP_ERROR(get_logger(), "Cannot send stop hold: /joint_states is stale or missing");
+        return false;
+      }
+      positions = current_joint_positions_;
+    }
+    if (output_mode_ == "trajectory") {
+      trajectory_msgs::msg::JointTrajectory hold;
+      // stamp=0：由控制器以接收时刻开始，不带过期的流式轨迹时间戳。
+      hold.joint_names.assign(controller_joint_names_.begin(), controller_joint_names_.end());
+      trajectory_msgs::msg::JointTrajectoryPoint point;
+      point.positions.assign(positions.begin(), positions.end());
+      point.velocities.assign(positions.size(), 0.0);
+      point.accelerations.assign(positions.size(), 0.0);
+      point.time_from_start = rclcpp::Duration::from_seconds(0.2);
+      hold.points.push_back(point);
+      trajectory_publisher_->publish(hold);
+    } else {
+      std_msgs::msg::Float64MultiArray hold;
+      hold.data.assign(positions.begin(), positions.end());
+      joint_command_publisher_->publish(hold);
+    }
+    have_commanded_ = false;
+    RCLCPP_INFO(get_logger(), "Admittance stopped: sent current joint positions with zero final velocity");
+    return true;
+  }
+
+  void prepare_shutdown()
+  {
+    control_timer_->cancel();
+    stop_output();
   }
 
 private:
@@ -440,9 +550,38 @@ private:
       ordered_positions[expected_index] = message->position[message_index];
     }
 
-    std::lock_guard<std::mutex> lock(joint_state_mutex_);
-    current_joint_positions_ = ordered_positions;
-    have_joint_state_ = true;
+    bool first_joint_state = false;
+    {
+      std::lock_guard<std::mutex> lock(joint_state_mutex_);
+      first_joint_state = !have_joint_state_;
+      current_joint_positions_ = ordered_positions;
+      last_joint_state_received_ = std::chrono::steady_clock::now();
+      have_joint_state_ = true;
+    }
+
+    const double wrist_1_deg = ordered_positions[3] * 180.0 / M_PI;
+    const double wrist_2_deg = ordered_positions[4] * 180.0 / M_PI;
+    const double wrist_3_deg = ordered_positions[5] * 180.0 / M_PI;
+    if (first_joint_state) {
+      RCLCPP_INFO(
+        get_logger(),
+        "Initial wrist joints (ROS names): wrist_1=%.1f deg, wrist_2=%.1f deg, "
+        "wrist_3=%.1f deg",
+        wrist_1_deg, wrist_2_deg, wrist_3_deg);
+    }
+    if (!std::isfinite(wrist_1_deg) || !std::isfinite(wrist_2_deg) ||
+      !std::isfinite(wrist_3_deg) ||
+      std::abs(wrist_1_deg) >= wrist_warning_limit_deg_ ||
+      std::abs(wrist_2_deg) >= wrist_warning_limit_deg_ ||
+      std::abs(wrist_3_deg) >= wrist_warning_limit_deg_)
+    {
+      RCLCPP_WARN_THROTTLE(
+        get_logger(), *get_clock(), 10000,
+        "Wrist near configured warning threshold %.1f deg: "
+        "wrist_1=%.1f, wrist_2=%.1f, wrist_3=%.1f deg. "
+        "Check the teach pendant joint limits before commanding motion.",
+        wrist_warning_limit_deg_, wrist_1_deg, wrist_2_deg, wrist_3_deg);
+    }
   }
 
   void wrench_callback(const geometry_msgs::msg::WrenchStamped::ConstSharedPtr message)
@@ -516,6 +655,21 @@ private:
       measured_wrench.wrench.force.z = filtered_force_[2];
     }
     external_wrench_publisher_->publish(measured_wrench);
+
+    // 方向调试按需开启，常规工作流不持续刷屏。
+    if (log_force_direction_) {
+      RCLCPP_INFO_THROTTLE(
+        get_logger(), *get_clock(), 1000,
+        "Force direction: sensor_raw=[%.2f %.2f %.2f], base_raw=[%.2f %.2f %.2f], "
+        "base_filtered=[%.2f %.2f %.2f], compliance_input=[%.2f %.2f %.2f] N",
+        measured_local.x(), measured_local.y(), measured_local.z(),
+        measured_base.x(), measured_base.y(), measured_base.z(),
+        measured_wrench.wrench.force.x, measured_wrench.wrench.force.y,
+        measured_wrench.wrench.force.z,
+        measured_wrench.wrench.force.x * compliance_force_sign_[0],
+        measured_wrench.wrench.force.y * compliance_force_sign_[1],
+        measured_wrench.wrench.force.z * compliance_force_sign_[2]);
+    }
 
     // 控制循环由固定频率 timer 驱动；这里仅更新最新力值。
   }
@@ -638,6 +792,12 @@ private:
       }
 
       if (overload_hold_active_) {
+        RCLCPP_WARN_THROTTLE(
+          get_logger(), *get_clock(), 2000,
+          "Overload hold active: force=%.1f N; compliance offset is zero. "
+          "Remove external force; recovery requires force below %.1f N. "
+          "If the unloaded baseline changed after repositioning, disable admittance and tare.",
+          force_norm, protection_release_force_);
         target = overload_hold_target_;
         // 在保持状态中持续清零，确保阈值附近的残余导纳速度不会带来漂移。
         compliance_offset_.fill(0.0);
@@ -646,8 +806,8 @@ private:
 
     // 这里刻意不用二阶 M*x_ddot + D*x_dot + K*x = F 积分。外力持续存在时，
     // 二阶状态会储存速度；Gazebo 同时又在物理上推动机器人，两个动态环叠加
-    // 后容易出现整臂摆动。准静态模型的平衡点就是 F/K，方向必然与 base_link
-    // 下的测得力一致。指数平滑只限制接近该平衡点的速度，不会产生过冲。
+    // 后容易出现整臂摆动。准静态模型的平衡点就是 F/K，方向由基座测得力和
+    // compliance_force_sign 共同决定。指数平滑只限制接近平衡点的速度。
     const double dt = 1.0 / control_rate_;
     const double smoothing = 1.0 - std::exp(-dt / compliance_time_constant_);
     for (std::size_t axis = 0; axis < 3; ++axis) {
@@ -660,7 +820,7 @@ private:
       }
 
       // 先消除死区，再限幅。死区用于抑制噪声，限幅用于防止异常读数产生过大动作。
-      double external_force = force[axis];
+      double external_force = force[axis] * compliance_force_sign_[axis];
       if (std::abs(external_force) <= force_deadband_[axis]) {
         external_force = 0.0;
       } else {
@@ -869,10 +1029,6 @@ private:
       for (std::size_t index = 0; index < controller_joint_names_.size(); ++index) {
         double joint_step = ik_state.getVariablePosition(controller_joint_names_[index]) -
           current_joint_positions[index];
-        if (max_joint_command_step_ > 0.0) {
-          joint_step = std::clamp(
-            joint_step, -max_joint_command_step_, max_joint_command_step_);
-        }
         target_joint_positions[index] = current_joint_positions[index] + joint_step;
         const auto & bounds = robot_model_->getVariableBounds(controller_joint_names_[index]);
         if (bounds.position_bounded_) {
@@ -892,7 +1048,14 @@ private:
           joint_model_group, ik_target, end_effector_frame_, 0.01))
       {
         RCLCPP_WARN_THROTTLE(
-          get_logger(), *get_clock(), 1000, "MoveIt IK failed for the compliant target");
+          get_logger(), *get_clock(), 1000,
+          "MoveIt IK failed; no joint command sent. Target in %s: "
+          "xyz=[%.3f %.3f %.3f] quaternion_xyzw=[%.4f %.4f %.4f %.4f]; "
+          "current xyz=[%.3f %.3f %.3f]",
+          base_frame_.c_str(), ik_target.position.x, ik_target.position.y,
+          ik_target.position.z, ik_target.orientation.x, ik_target.orientation.y,
+          ik_target.orientation.z, ik_target.orientation.w,
+          translation.x, translation.y, translation.z);
         return;
       }
 
@@ -910,16 +1073,15 @@ private:
         {
           target_joint_positions[index] = nearest_equivalent;
         }
-        if (max_joint_command_step_ > 0.0) {
-          const double delta = target_joint_positions[index] - current_joint_positions[index];
-          target_joint_positions[index] = current_joint_positions[index] + std::clamp(
-            delta, -max_joint_command_step_, max_joint_command_step_);
-        }
         largest_joint_command_step = std::max(
           largest_joint_command_step,
           std::abs(target_joint_positions[index] - current_joint_positions[index]));
       }
     }
+
+    // 独立截断各轴会破坏逆解的配合关系，产生额外下沉和转腕。
+    largest_joint_command_step = admittance::limit_joint_step(
+      current_joint_positions, target_joint_positions, max_joint_command_step_);
 
     if (output_mode_ == "position") {
       // 仿真专用：forward_position_controller 接收六个目标位置。
@@ -932,8 +1094,15 @@ private:
       // 真机专用：scaled_joint_trajectory_controller 接收标准 JointTrajectory。
       // time_from_start 给出名义轨迹时间；控制器内部再根据机器人报告的
       // speed_scaling_factor 调整轨迹推进速度，因此示教器速度滑块仍然有效。
+      if (trajectory_publisher_->get_subscription_count() == 0) {
+        RCLCPP_WARN_THROTTLE(
+          get_logger(), *get_clock(), 1000,
+          "No subscriber on joint trajectory command topic; check that the scaled joint trajectory controller is active");
+        return;
+      }
       trajectory_msgs::msg::JointTrajectory trajectory;
-      trajectory.header.stamp = now();
+      // stamp=0 表示接收后开始。scaled 控制器的 uptime 在低速时落后于
+      // 系统时间，流式命令不能不断以 now() 将起点推到其时间轴的未来。
       trajectory.joint_names.assign(
         controller_joint_names_.begin(), controller_joint_names_.end());
       trajectory_msgs::msg::JointTrajectoryPoint point;
@@ -943,6 +1112,7 @@ private:
       trajectory.points.push_back(point);
       trajectory_publisher_->publish(trajectory);
     }
+    have_commanded_ = true;
 
     const double position_error_norm = vector_norm(position_error);
     tf2::Quaternion current_q(
@@ -1021,6 +1191,7 @@ private:
   double overload_force_threshold_;
   double protection_release_force_;
   double max_joint_command_step_;
+  double wrist_warning_limit_deg_;
   bool use_differential_ik_;
   double cartesian_position_gain_;
   double cartesian_orientation_gain_;
@@ -1033,6 +1204,7 @@ private:
   std::size_t bias_sample_count_;
 
   Vector3 stiffness_;
+  Vector3 compliance_force_sign_;
   Vector3 force_deadband_;
   double force_norm_limit_;
   Vector3 max_compliance_offset_;
@@ -1051,6 +1223,8 @@ private:
     "wrist_3_joint"};
   std::array<double, 6> current_joint_positions_{};
   bool have_joint_state_{false};
+  std::chrono::steady_clock::time_point last_joint_state_received_{};
+  bool have_commanded_{false};
   bool have_speed_scaling_{false};
   double speed_scaling_percent_{100.0};
   std::vector<geometry_msgs::msg::Pose> targets_;
@@ -1070,6 +1244,7 @@ private:
   rclcpp::Time last_wrench_time_{0, 0, RCL_ROS_TIME};
 
   bool enabled_{true};
+  bool log_force_direction_{false};
   tf2_ros::Buffer tf_buffer_;
   tf2_ros::TransformListener tf_listener_;
   rclcpp::Publisher<geometry_msgs::msg::WrenchStamped>::SharedPtr external_wrench_publisher_;
@@ -1083,6 +1258,7 @@ private:
   rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr pose_subscription_;
   rclcpp::Subscription<geometry_msgs::msg::PoseArray>::SharedPtr poses_subscription_;
   rclcpp::Service<std_srvs::srv::SetBool>::SharedPtr enable_service_;
+  rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr hold_current_service_;
   rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr tare_service_;
   rclcpp::TimerBase::SharedPtr control_timer_;
   std::unique_ptr<robot_model_loader::RobotModelLoader> robot_model_loader_;
@@ -1091,13 +1267,34 @@ private:
 
 int main(int argc, char ** argv)
 {
-  rclcpp::init(argc, argv);
+  // 默认 signal handler 会先关闭 context，届时无法发布退出保持轨迹。
+  rclcpp::init(argc, argv, rclcpp::InitOptions(), rclcpp::SignalHandlerOptions::None);
+  std::signal(SIGINT, request_exit);
+  std::signal(SIGTERM, request_exit);
+  std::shared_ptr<AdmittancePoseController> node;
   try {
-    auto node = std::make_shared<AdmittancePoseController>();
+    node = std::make_shared<AdmittancePoseController>();
     node->initialize();
-    rclcpp::spin(node);
+    rclcpp::executors::SingleThreadedExecutor executor;
+    executor.add_node(node);
+    while (rclcpp::ok() && !exit_requested) {
+      executor.spin_once(std::chrono::milliseconds(10));
+    }
+    if (rclcpp::ok()) {
+      node->prepare_shutdown();
+      // 保持 context/publisher 存活，让保持轨迹完成传输和 0.2 s 的收尾。
+      const auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(300);
+      while (rclcpp::ok() && std::chrono::steady_clock::now() < deadline) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+      }
+    }
+    executor.remove_node(node);
   } catch (const std::exception & error) {
     RCLCPP_FATAL(rclcpp::get_logger("admittance_controller"), "%s", error.what());
+    if (node && rclcpp::ok()) {
+      node->prepare_shutdown();
+      std::this_thread::sleep_for(std::chrono::milliseconds(300));
+    }
   }
   rclcpp::shutdown();
   return 0;

@@ -84,6 +84,9 @@ ControllerStopper::ControllerStopper(const rclcpp::Node::SharedPtr& node, bool s
         auto request_switch_controller = std::make_shared<controller_manager_msgs::srv::SwitchController::Request>();
         request_switch_controller->strictness = request_switch_controller->STRICT;
         request_switch_controller->deactivate_controllers = stopped_controllers_;
+        for (const auto& name : stopped_controllers_) {
+            RCLCPP_WARN(node_->get_logger(), "Startup protection: deactivating controller '%s'", name.c_str());
+        }
         auto future = controller_manager_srv_->async_send_request(request_switch_controller);
         rclcpp::spin_until_future_complete(node_, future);
         if (future.get()->ok == false) {
@@ -126,6 +129,10 @@ void ControllerStopper::findAndStopControllers() {
             request_switch_controller->strictness = request_switch_controller->STRICT;
             if (!stopped_controllers_.empty()) {
                 request_switch_controller->deactivate_controllers = stopped_controllers_;
+                for (const auto& name : stopped_controllers_) {
+                    RCLCPP_WARN(node_->get_logger(),
+                                "Robot task is not running: deactivating controller '%s'", name.c_str());
+                }
                 auto future = controller_manager_srv_->async_send_request(request_switch_controller, callback_switch_controller);
             }
         };
@@ -139,12 +146,17 @@ void ControllerStopper::startControllers() {
         auto result = future_response.get();
         if (result->ok == false) {
             RCLCPP_ERROR(rclcpp::get_logger("Controller stopper"), "Could not activate requested controllers");
+        } else {
+            RCLCPP_INFO(node_->get_logger(), "Previously stopped controllers reactivated successfully");
         }
     };
     if (!stopped_controllers_.empty()) {
         auto request = std::make_shared<controller_manager_msgs::srv::SwitchController::Request>();
         request->strictness = request->STRICT;
         request->activate_controllers = stopped_controllers_;
+        for (const auto& name : stopped_controllers_) {
+            RCLCPP_INFO(node_->get_logger(), "Robot task resumed: reactivating controller '%s'", name.c_str());
+        }
         auto future = controller_manager_srv_->async_send_request(request, callback);
     }
 }
@@ -153,9 +165,13 @@ void ControllerStopper::robotRunningCallback(const std_msgs::msg::Bool::ConstSha
     RCLCPP_DEBUG(rclcpp::get_logger("Controller stopper"), "robotRunningCallback with data %d", msg->data);
 
     if (msg->data && !robot_running_) {
+        RCLCPP_INFO(node_->get_logger(), "robot_task_running changed false -> true");
         RCLCPP_DEBUG(rclcpp::get_logger("Controller stopper"), "Starting controllers");
         startControllers();
     } else if (!msg->data && robot_running_) {
+        RCLCPP_WARN(node_->get_logger(),
+                    "robot_task_running changed true -> false; stopping motion controllers. "
+                    "Check teach-pendant alarms, the external control program and the robot connection.");
         RCLCPP_DEBUG(rclcpp::get_logger("Controller stopper"), "Stopping controllers");
         // stop all controllers except the once in consistent_controllers_
         findAndStopControllers();

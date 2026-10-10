@@ -339,13 +339,16 @@ def generate_launch_description():
     declared_arguments.append(
         DeclareLaunchArgument(
             "cs_type",
+            default_value="ls65",
             description="Type/series of used Elite robot CS series.",
             choices=["cs63", "cs66", "cs68", "cs612", "cs616", "cs618f", "cs620", "cs625", "cs66a", "cs520h", "ls65"],
         )
     )
     declared_arguments.append(
         DeclareLaunchArgument(
-            "robot_ip", description="IP address by which the robot can be reached."
+            "robot_ip",
+            default_value="169.254.199.150", 
+            description="IP address by which the robot can be reached."
         )
     )
     declared_arguments.append(
@@ -436,7 +439,7 @@ def generate_launch_description():
     declared_arguments.append(
         DeclareLaunchArgument(
             "headless_mode",
-            default_value="false",
+            default_value="true",
             description="Enable headless mode for robot control",
         )
     )

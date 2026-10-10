@@ -35,6 +35,7 @@ XYZ 轴表达。若传感器相对机器人 `tool0` 有旋转，必须发布
 导纳控制的受力方向会错误。
 
 所有传感器协议命令都固定以 HEX 原始字节发送，不会追加换行或转换成 ASCII 文本。`AA 55 35 0D 0A` 不包含目标单位，因此只能表示“切换单位”。启动前应确认设备当前单位。
+若设备当前是 kgf、希望以后默认使用 N/N·m，应先以 `unit:=kg` 的节点运行一次 `/sensor/toggle_unit`，确认设备已切到 N 后重启传感器节点，并使用 `sensor_tcp.yaml` 中的 `unit: "N"`。不要在每次启动时自动调用该服务；重复切换会回到 kgf。
 `baud_code: 1` 已知代表 460800；代码保留 2、3，但使用前必须查设备手册。
 
 ## 启动
@@ -77,14 +78,14 @@ ros2 topic echo /sensor/rx
 ros2 service call /sensor/zero std_srvs/srv/Trigger "{}"
 ros2 service call /sensor/start std_srvs/srv/Trigger "{}"
 ros2 service call /sensor/stop std_srvs/srv/Trigger "{}"
-ros2 service call /sensor/toggle_unit std_srvs/srv/Trigger "{}"
+ros2 service call /sensor/toggle_unit std_srvs/srv/Trigger "{}"转换单位的
 ros2 service call /sensor/set_baud std_srvs/srv/Trigger "{}"
 ros2 service call /sensor/write eli_cs_robot_serial/srv/WriteSerial "{data: 'AA 55 30 0D 0A'}"
 ```
 
 单位切换流程中普通命令的停顿由 `unit_switch_delay_ms` 控制，清零后的等待由 `zero_wait_ms` 控制。
 
-设备数据帧支持两种形式：29 字节二进制帧（帧头 `AA 55`、命令码 `02/03`、24 字节大端 IEEE754 浮点、帧尾 `0D 0A`），以及 debug 模式下的 `channels: v1,v2,v3,v4,v5,v6` ASCII 行。USB/TCP 配置默认开启 `publish_wrench`，并按 `unit` 参数发布 N/Nm 或 kg/kgm。
+设备数据帧支持两种形式：29 字节二进制帧（帧头 `AA 55`、命令码 `02/03`、24 字节大端 IEEE754 浮点、帧尾 `0D 0A`），以及 debug 模式下的 `channels: v1,v2,v3,v4,v5,v6` ASCII 行。USB/TCP 配置默认开启 `publish_wrench`。`unit` 声明设备当前输出单位：`N` 表示 N/N·m，`kg` 表示 kgf/kgf·m；节点会将 `kg` 数值乘以 `9.80665`，使 `/sensor/wrench` 始终为 N/N·m。该参数不会切换设备单位。
 
 当前已知协议为 29 字节大端浮点帧，USB 配置会发布 `/sensor/wrench`。启动实时曲线：
 

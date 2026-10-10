@@ -240,10 +240,14 @@ void GPIOController::publishSafetyMode() {
 
 void GPIOController::publishTaskRunning() {
     auto task_running_value = static_cast<uint8_t>(state_interfaces_[(int)StateOffset::TASK_RUNNING].get_value());
-    bool task_running = task_running_value == 1.0 ? true : false;
-    if (task_running_msg_.data != task_running) {
+    const bool task_running = task_running_value == 1;
+    const auto now = std::chrono::steady_clock::now();
+    if (!task_state_published_ || task_running_msg_.data != task_running ||
+        now - last_task_state_publish_time_ >= std::chrono::seconds(1)) {
         task_running_msg_.data = task_running;
         task_state_pub_->publish(task_running_msg_);
+        task_state_published_ = true;
+        last_task_state_publish_time_ = now;
     }
 }
 
@@ -256,6 +260,7 @@ controller_interface::CallbackReturn ELITE_CS_CONTROLLER::GPIOController::on_act
     }
 
     try {
+        task_state_published_ = false;
         // "~" 表示控制器私有命名空间，避免多个控制器话题重名。
         io_pub_ = get_node()->create_publisher<eli_common_interface::msg::IOState>("~/io_states", rclcpp::SystemDefaultsQoS());
 

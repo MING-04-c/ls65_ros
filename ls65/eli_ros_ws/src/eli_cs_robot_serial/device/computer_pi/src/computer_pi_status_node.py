@@ -191,7 +191,10 @@ class ComputerPiStatus(Node):
             data = json.loads(message.data)
             message_type = self.validate_message(data)
         except (json.JSONDecodeError, ValueError) as exc:
-            self.get_logger().warn(f"Ignoring invalid status message: {exc}")
+            self.get_logger().warn(
+                f"Ignoring invalid status message: {exc}; received={message.data[:1000]}",
+                throttle_duration_sec=5.0,
+            )
             return
 
         self.last_valid_message = time.monotonic()
@@ -259,6 +262,9 @@ class ComputerPiStatus(Node):
             data["task"] = request.task
         self.pending_control_commands[command_id] = data
         self.send_protocol_message(data)
+        self.get_logger().info(
+            f"Chassis control sent: event_id={command_id} command={command} task={request.task!r}"
+        )
         response.success = True
         response.command_id = command_id
         response.message = f"{command} command queued for TCP transmission"

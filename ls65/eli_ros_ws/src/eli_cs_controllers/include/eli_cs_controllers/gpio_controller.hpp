@@ -10,6 +10,7 @@
 #include "eli_common_interface/srv/set_payload.hpp"
 
 #include <memory>
+#include <chrono>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -160,6 +161,8 @@ private:
     eli_common_interface::msg::RobotMode robot_mode_msg_;
     eli_common_interface::msg::SafetyMode safety_mode_msg_;
     std_msgs::msg::Bool task_running_msg_;
+    bool task_state_published_{false};
+    std::chrono::steady_clock::time_point last_task_state_publish_time_{};
 
     // Parameters from ROS for gpio_controller
     std::shared_ptr<gpio_controller::ParamListener> param_listener_;

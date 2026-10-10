@@ -13,6 +13,7 @@
   <exec_depend>geometry_msgs</exec_depend>
   <exec_depend>std_msgs</exec_depend>
   <exec_depend>std_srvs</exec_depend>
+  <exec_depend>tf2_ros</exec_depend>
   <exec_depend>eli_cs_robot_serial</exec_depend>
   <exec_depend>eli_cs_robot_usr</exec_depend>
   <exec_depend>launch</exec_depend>

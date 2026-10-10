@@ -23,6 +23,30 @@ equilibrium_offset = effective_force / stiffness
 command_xyz = raw_target_xyz + compliance_offset
 ```
 
+真机试验配置 `compliance_force_sign: [-1.0, -1.0, 1.0]`，在力转换到 `base_link` 并去零、滤波后，反转 X、Y 的导纳输入，Z 保持原符号。该参数每项只能是 `-1.0` 或 `1.0`；默认值 `[1.0, 1.0, 1.0]`。这是试验用的基座响应方向修正，尚不等同于传感器安装方向校准。
+
+`/admittance_controller/measured_wrench` 保留转换、去零和滤波后的基座测量值；每秒的 `Force direction` 日志另列出 `sensor_raw`、`base_raw`、`base_filtered` 和带符号修正的 `compliance_input`（死区和限幅之前）。
+
+单独测试时，关闭目标发布器启动 `compliant_control_real.launch.py`，等待 `Force bias ready`，末端无外力时调用以下服务，以当前 TCP 位姿作为目标并开启导纳：
+
+```bash
+ros2 service call /admittance_controller/hold_current_pose std_srvs/srv/Trigger '{}'
+```
+
+停止导纳输出：
+
+```bash
+ros2 service call /admittance_controller/enable std_srvs/srv/SetBool '{data: false}'
+```
+
+关闭导纳或 Ctrl+C 退出时，节点先停止流式输出，用最近 250 ms 内的实际关节位置发送一个 0.2 秒、末点速度和加速度为零的保持轨迹，覆盖尚未完成的 IK 目标。Ctrl+C 路径保留 ROS 上下文 0.3 秒后退出。尚未发送过运动命令时不发保持轨迹，避免覆盖其他控制源；关节反馈过期时会报错，不使用旧位置作为保持点。正常收尾日志为 `Admittance stopped: sent current joint positions with zero final velocity`。
+
+`max_joint_command_step` 使用统一比例缩放：先求完整 IK 关节增量，再按最大增量缩小整个向量，保留各关节的运动比例。逐轴独立截断会改变末端的移动方向和姿态。该限幅不保证严格的笛卡尔直线路径，实机仍需观察到位误差和姿态保持效果。
+
+换姿态测试时，先关闭导纳输出。新姿态下末端静止且无外力后调用 `/admittance_controller/tare`（`std_srvs/srv/Trigger`），等待 `Force bias ready`，再调用 `hold_current_pose`。当前零偏采集针对固定姿态，没有工具质量、重心模型的动态重力补偿。
+
+日志 `overload_hold=true` 表示合力曾达到过载阈值，导纳偏移被清零并保持触发时的 TCP 位姿。当前阈值为 400 N，恢复要求合力低于 3 N；仍有数牛顿以上残余读数时会继续保持。不要在施加外力时做 tare。
+
 实际偏移还会受合力限幅、单轴位移上限、偏移速度上限和过载保护影响。
 
 ## 参数说明
@@ -79,12 +103,18 @@ force_deadband: [1.5, 1.5, 1.5]
 力到柔顺平衡位移的一阶平滑时间常数，单位为秒。
 
 ```yaml
-compliance_time_constant: 0.15
+compliance_time_constant: 0.10
 ```
 
 - 减小：目标偏移响应更快，但对力噪声更敏感。
 - 增大：响应更平滑，但手感更慢。
-- 真机建议在 `0.15~0.50 s` 内逐步调整。
+- 当前真机配置为 `0.10 s`，需结合力噪声和实际轨迹跟随情况逐步调整。
+
+### `force_filter_alpha` 与力方向
+
+当前为 `0.15`，每次收到传感器数据时执行 `filtered += alpha * (sample - filtered)`。增大会减少滤波延迟，同时传入更多噪声。它与 `compliance_time_constant` 共同影响力到目标偏移的响应时间。
+
+`/sensor/wrench` 表达在传感器坐标系；`/admittance_controller/measured_wrench` 表达在 `base_link`，导纳按这个话题的力方向计算正向偏移。安装旋转由 `sensor_roll`、`sensor_pitch`、`sensor_yaw` 指定，单位为弧度，联合测试 launch 也支持这三个参数。当前默认 yaw 为 `+π/2`，即传感器 +X 指向 tool0 +Y、传感器 +Y 指向 tool0 −X。方向校准时应先关闭导纳输出，逐轴施力，对照这两个话题和实际安装轴向，再修改安装旋转。
 
 ### `max_compliance_speed`
 
@@ -129,13 +159,13 @@ force_norm_limit: 200.0
 ### `overload_force_threshold` 和 `protection_release_force`
 
 ```yaml
-overload_force_threshold: 200.0
+overload_force_threshold: 400.0
 protection_release_force: 3.0
 ```
 
-合力达到 `200 N` 时，控制器立即锁定进入保护时的当前 TCP 位姿，不再增加偏移。合力降到 `3 N` 以下后解除保护。
+合力达到 `400 N` 时，控制器立即锁定进入保护时的当前 TCP 位姿，不再增加偏移。合力降到 `3 N` 以下后解除保护。
 
-`overload_force_threshold` 应小于或等于 `force_norm_limit`。因为保护判断使用 `>=`，所以要测试 20 cm 理论偏移时，应逐步接近 200 N，不要故意超过阈值。
+两个阈值独立：过载判断使用限幅前、去零并滤波后的合力；`force_norm_limit` 只限制导纳方程的输入。当前 `force_norm_limit=200 N`、`overload_force_threshold=400 N`，所以 200~400 N 的推力仍会生成让位目标，目标偏移不会随推力无限增大，每轴仍最多 15 cm。达到 400 N 时仍立即保持当前位置，并不保证先完成让位运动。
 
 ### `force_filter_alpha`
 
@@ -226,6 +256,6 @@ done
 - 确认 `scaled_joint_trajectory_controller` 为 `active`。
 - 确认 `/io_and_status_controller/robot_task_running` 为 `true`。
 - 首次启动时保持末端无负载，等待 `Force bias ready` 后再施力。
-- 从 `5 N` 开始逐步增加，不要直接冲击 `200 N` 保护阈值。
+- 从 `5 N` 开始逐步增加，当前过载保持阈值为 `400 N`。
 - 确保机械臂在当前方向有足够的工作空间，并随时准备急停。
 - 如果末端方向错误、姿态明显改变、关节突跳或无法撤力回零，立即停止测试，不要继续增大外力。

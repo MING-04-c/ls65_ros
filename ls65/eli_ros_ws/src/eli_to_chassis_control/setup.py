@@ -12,6 +12,10 @@ setup(
         ("share/" + package_name, ["package.xml", "README.md"]),
         ("share/" + package_name + "/launch", glob("launch/*.launch.py")),
         ("share/" + package_name + "/config", glob("config/*.yaml")),
+        # launch 通过脚本文件启动，不依赖 editable 包路径或入口元数据。
+        ("share/" + package_name + "/scripts", [
+            "eli_to_chassis_control/workflow_controller.py",
+        ]),
     ],
     install_requires=["setuptools"],
     zip_safe=True,
